@@ -1,0 +1,5 @@
+name: diversitus
+runtime: nodejs
+description: AWS infrastructure for the Diversitus matching service.
+backend:
+  url: s3://diversitus-pulumi-state-2024 # <-- Use your actual S3 bucket name here
