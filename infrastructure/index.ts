@@ -17,9 +17,9 @@ const repo = new awsx.ecr.Repository("diversitus-repo", {
 const image = new awsx.ecr.Image("diversitus-image", {
     repositoryUrl: repo.url,
     // The build context is the project root directory, so Gradle can find all modules.
-    path: path.join(__dirname, ".."),
-    // The Dockerfile is now located in the 'backend/app' subdirectory.
-    dockerfile: "backend/app/Dockerfile",
+    context: path.join(__dirname, ".."),
+    // Explicitly construct the full path to the Dockerfile to avoid resolution issues.
+    dockerfile: path.join(__dirname, "..", "backend", "app", "Dockerfile"),
 });
 
 // 3. Create a DynamoDB table to store job listings.

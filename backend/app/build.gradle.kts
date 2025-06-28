@@ -1,41 +1,32 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm") version "1.9.22"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
     application
 }
 
-repositories {
-    mavenCentral()
-}
-
-val ktorVersion = "2.3.8"
-
 dependencies {
-    // Ktor Core
-    implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
-
-    // Content Negotiation & Serialization
-    implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
+    // Ktor
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.serialization.kotlinx.json)
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.4.14")
+    implementation(libs.logback.classic)
 
-    // AWS SDK for Kotlin - DynamoDB
-    implementation("aws.sdk.kotlin:dynamodb:1.2.1")
+    // AWS SDK for Kotlin
+    implementation(libs.aws.sdk.dynamodb)
 
     // Testing
-    testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.9.22")
+    testImplementation(libs.ktor.server.tests)
+    testImplementation(libs.kotlin.test.junit)
 }
 
 application {
     mainClass.set("com.diversitus.ApplicationKt")
 }
 
+// This task creates a single "fat" JAR file containing all dependencies.
 tasks.withType<Jar> {
     manifest {
         attributes["Main-Class"] = application.mainClass.get()
