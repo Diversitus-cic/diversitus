@@ -15,12 +15,13 @@ RUN gradle :backend:app:dependencies --no-daemon
 COPY --chown=gradle:gradle . .
 RUN gradle :backend:app:shadowJar --no-daemon --rerun-tasks
 
-# Stage 2: Create the final Lambda-compatible image
-FROM public.ecr.aws/lambda/java:17
+# Stage 2: Create the final, minimal production image
+FROM amazoncorretto:17-alpine-jdk
+
+WORKDIR /app
 
 # Copy the shadow JAR (fat JAR with all dependencies)
-COPY --from=builder /home/gradle/src/backend/app/build/libs/*-all.jar ${LAMBDA_TASK_ROOT}/app.jar
+COPY --from=builder /home/gradle/src/backend/app/build/libs/*-all.jar app.jar
 
-# Set the CMD to your Lambda handler class and method
-# Format: package.ClassName::methodName
-CMD ["com.diversitus.LambdaHandler::handleRequest"]
+# Set the command to run the Ktor application
+CMD ["java", "-jar", "app.jar"]

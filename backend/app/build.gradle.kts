@@ -18,7 +18,7 @@ repositories {
 dependencies {
     // Ktor - All versions managed by libs.versions.toml
     implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.lambda)
+    implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 

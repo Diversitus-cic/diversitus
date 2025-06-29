@@ -46,92 +46,63 @@ initialJobs.forEach((job, i) => {
     });
 });
 
-// 4. Create an IAM role and policy for the Lambda function.
-const lambdaRole = new aws.iam.Role("diversitus-lambda-role", {
-    assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({ Service: "lambda.amazonaws.com" }),
+// 4. Create an IAM role for the Fargate Task.
+const taskRole = new aws.iam.Role("diversitus-task-role", {
+    assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({ Service: "ecs-tasks.amazonaws.com" }),
 });
 
-// Create a specific policy that grants our Lambda access to the DynamoDB table.
-const dbAccessPolicy = new aws.iam.Policy("diversitus-db-access-policy", {
+// 5. Create and attach an inline policy to the role, allowing it to access DynamoDB.
+new aws.iam.RolePolicy("diversitus-db-access-policy", {
+    role: taskRole.id,
     policy: jobsTable.arn.apply(arn => JSON.stringify({
         Version: "2012-10-17",
         Statement: [{
-            Action: [
-                "dynamodb:Scan", 
-                "dynamodb:Query", 
-                "dynamodb:GetItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem"
-            ],
+            Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem"],
             Effect: "Allow",
             Resource: arn,
         }],
     })),
 });
 
-// Attach policies to the Lambda's role.
-new aws.iam.RolePolicyAttachment("diversitus-db-policy-attachment", {
-    role: lambdaRole.name,
-    policyArn: dbAccessPolicy.arn,
-});
-
-new aws.iam.RolePolicyAttachment("diversitus-lambda-policy", {
-    role: lambdaRole.name,
-    policyArn: aws.iam.ManagedPolicy.AWSLambdaBasicExecutionRole,
-});
-
-// 5. Create the AWS Lambda function using the container image.
-const lambda = new aws.lambda.Function("diversitus-lambda", {
-    packageType: "Image",
-    imageUri: image.imageUri,
-    role: lambdaRole.arn,
-    timeout: 30,
-    memorySize: 512,
-    environment: {
-        variables: {
-            JOBS_TABLE_NAME: jobsTable.name,
-            // Add AWS region for SDK
-            AWS_REGION: aws.getRegion().then(region => region.name),
-        },
+// 6. Create an ECS Cluster, Load Balancer, and the Fargate Service.
+const cluster = new aws.ecs.Cluster("diversitus-cluster");
+const alb = new awsx.lb.ApplicationLoadBalancer("diversitus-lb", {
+    // Configure the default target group to expect targets on port 8080, matching the Ktor application.
+    defaultTargetGroup: {
+        port: 8080,
     },
 });
-
-// 6. Create an API Gateway (HTTP API) to make the Lambda accessible.
-const api = new aws.apigatewayv2.Api("diversitus-api", {
-    protocolType: "HTTP",
-    // Remove the target here - we'll create explicit routes
+const service = new awsx.ecs.FargateService("diversitus-fargate-service", {
+    cluster: cluster.arn,
+    // The task definition is defined inline.
+    taskDefinitionArgs: {
+        // Pass the ARN of the role we created explicitly.
+        taskRole: { roleArn: taskRole.arn },
+        // Define the container to run.
+        container: {
+            name: "app", // A required name for the container within the task definition.
+            image: image.imageUri,
+            cpu: 256,
+            memory: 512,
+            // Map the container's port to the load balancer's target group.
+            portMappings: [{
+                containerPort: 8080, // The port Ktor listens on inside the container.
+                // For awsvpc network mode, hostPort must be specified and must match containerPort.
+                hostPort: 8080,
+                targetGroup: alb.defaultTargetGroup,
+            }],
+            environment: [
+                { name: "JOBS_TABLE_NAME", value: jobsTable.name },
+                { name: "AWS_REGION", value: aws.getRegion().then(r => r.name) },
+            ],
+        },
+    },
+    desiredCount: 1, // Run one instance of our container
+    // By default, Fargate services are placed in private subnets. The default VPC
+    // often lacks private subnets, causing an error. Setting assignPublicIp to true
+    // ensures the service is placed in public subnets and can be reached by the ALB.
+    assignPublicIp: true,
 });
 
-// 7. Create a Lambda integration
-const integration = new aws.apigatewayv2.Integration("diversitus-integration", {
-    apiId: api.id,
-    integrationType: "AWS_PROXY",
-    integrationUri: lambda.arn,
-    payloadFormatVersion: "2.0",
-});
-
-// 8. Create routes - catch all routes to forward to Lambda
-const route = new aws.apigatewayv2.Route("diversitus-route", {
-    apiId: api.id,
-    routeKey: "$default", // Catches all routes
-    target: pulumi.interpolate`integrations/${integration.id}`,
-});
-
-// 9. Create a stage for the API
-const stage = new aws.apigatewayv2.Stage("diversitus-stage", {
-    apiId: api.id,
-    name: "$default",
-    autoDeploy: true,
-});
-
-// 10. Give API Gateway permission to invoke the Lambda function.
-new aws.lambda.Permission("api-gateway-permission", {
-    action: "lambda:InvokeFunction",
-    function: lambda.name,
-    principal: "apigateway.amazonaws.com",
-    sourceArn: pulumi.interpolate`${api.executionArn}/*/*`,
-});
-
-// 11. Export the public URL of the API Gateway.
-export const apiUrl = api.apiEndpoint;
+// 8. Export the public URL of the Load Balancer.
+export const url = alb.loadBalancer.dnsName;
