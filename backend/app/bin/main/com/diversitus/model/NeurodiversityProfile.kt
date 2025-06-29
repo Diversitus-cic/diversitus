@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NeurodiversityProfile(
-    val preferences: List<String>
+    val traits: Map<String, Int>
 )

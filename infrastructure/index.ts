@@ -2,6 +2,7 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as awsx from "@pulumi/awsx";
 import * as path from "path";
+import { marshall } from "@aws-sdk/util-dynamodb";
 
 const config = new pulumi.Config();
 
@@ -31,18 +32,43 @@ const jobsTable = new aws.dynamodb.Table("diversitus-jobs-table", {
     },
 });
 
-// Seed the table with initial data
-const initialJobs = [
-    { id: { S: "job-1" }, title: { S: "Frontend Developer" }, company: { S: "Creative Co." }, requirements: { M: { "attention_to_detail": { N: "8" } } }, benefits: { L: [{ S: "remote" }, { S: "flexible-hours" }] } },
-    { id: { S: "job-2" }, title: { S: "Backend Engineer" }, company: { S: "Logic Inc." }, requirements: { M: { "problem_solving": { N: "9" } } }, benefits: { L: [{ S: "remote" }, { S: "quiet-office" }] } },
-    { id: { S: "job-3" }, title: { S: "UX Designer" }, company: { S: "UserFirst Ltd." }, requirements: { M: { "visual_thinking": { N: "9" } } }, benefits: { L: [{ S: "flexible-hours" }, { S: "collaborative-team" }] } },
+// 3b. Create a DynamoDB table to store company data.
+const companiesTable = new aws.dynamodb.Table("diversitus-companies-table", {
+    attributes: [{ name: "id", type: "S" }],
+    hashKey: "id",
+    billingMode: "PAY_PER_REQUEST",
+    tags: { Project: "Diversitus" },
+});
+
+// Seed the companies table with initial data.
+const initialCompaniesData = [
+    { id: "comp-1", name: "Creative Co.", traits: { "work_life_balance": 9, "collaboration": 8 } },
+    { id: "comp-2", name: "Logic Inc.", traits: { "deep_focus": 9, "autonomy": 7 } },
+    { id: "comp-3", name: "DataDriven Corp", traits: { "pattern_recognition": 9, "deep_focus": 8 } },
 ];
 
-initialJobs.forEach((job, i) => {
+initialCompaniesData.forEach((company, i) => {
+    new aws.dynamodb.TableItem(`company-item-${i}`, {
+        tableName: companiesTable.name,
+        hashKey: companiesTable.hashKey,
+        item: JSON.stringify(marshall(company)),
+    });
+});
+
+// Seed the jobs table with updated data linking to companies.
+const initialJobsData = [
+    { id: "job-1", companyId: "comp-1", title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9 } },
+    { id: "job-2", companyId: "comp-2", title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8 } },
+    { id: "job-3", companyId: "comp-1", title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10 } },
+    { id: "job-4", companyId: "comp-3", title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9 } },
+    { id: "job-5", companyId: "comp-2", title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8 } },
+];
+
+initialJobsData.forEach((job, i) => {
     new aws.dynamodb.TableItem(`job-item-${i}`, {
         tableName: jobsTable.name,
         hashKey: jobsTable.hashKey,
-        item: JSON.stringify(job),
+        item: JSON.stringify(marshall(job)),
     });
 });
 
@@ -54,12 +80,12 @@ const taskRole = new aws.iam.Role("diversitus-task-role", {
 // 5. Create and attach an inline policy to the role, allowing it to access DynamoDB.
 new aws.iam.RolePolicy("diversitus-db-access-policy", {
     role: taskRole.id,
-    policy: jobsTable.arn.apply(arn => JSON.stringify({
+    policy: pulumi.all([jobsTable.arn, companiesTable.arn]).apply(([jobsArn, companiesArn]) => JSON.stringify({
         Version: "2012-10-17",
         Statement: [{
-            Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem"],
+            Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem"],
             Effect: "Allow",
-            Resource: arn,
+            Resource: [jobsArn, companiesArn],
         }],
     })),
 });
@@ -93,6 +119,7 @@ const service = new awsx.ecs.FargateService("diversitus-fargate-service", {
             }],
             environment: [
                 { name: "JOBS_TABLE_NAME", value: jobsTable.name },
+                { name: "COMPANIES_TABLE_NAME", value: companiesTable.name },
                 { name: "AWS_REGION", value: aws.getRegion().then(r => r.name) },
             ],
         },

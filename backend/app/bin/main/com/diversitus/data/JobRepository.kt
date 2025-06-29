@@ -18,15 +18,14 @@ class JobRepository(private val dbClient: DynamoDbClient, private val tableName:
 
     private fun Map<String, AttributeValue>.toJob(): Job {
         return Job(
-            id = this["id"]?.asS() ?: throw IllegalStateException("Job item in DynamoDB is missing an 'id' attribute."),
+            id = this["id"]?.asS()
+                ?: throw IllegalStateException("Job item in DynamoDB is missing an 'id' attribute."),
+            companyId = this["companyId"]?.asS() ?: "",
             title = this["title"]?.asS() ?: "",
-            company = this["company"]?.asS() ?: "",
-            requirements = this["requirements"]?.asM()?.mapValues {
+            description = this["description"]?.asS() ?: "",
+            traits = this["traits"]?.asM()?.mapValues {
                 it.value.asN()?.toInt() ?: 0
-            } ?: emptyMap(),
-            benefits = this["benefits"]?.asL()?.map {
-                it.asS() ?: ""
-            } ?: emptyList()
+            } ?: emptyMap()
         )
     }
 }
