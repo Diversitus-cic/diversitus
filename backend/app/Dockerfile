@@ -12,13 +12,14 @@ RUN gradle :backend:app:dependencies --no-daemon
 
 # Copy the rest of the source code and build the application
 COPY --chown=gradle:gradle . .
-RUN gradle :backend:app:build fatJar --no-daemon --rerun-tasks
+RUN gradle :backend:app:shadowJar --no-daemon --rerun-tasks
 
 # Stage 2: Create the final, smaller image
 FROM amazoncorretto:17-alpine-jdk
 WORKDIR /app
 
-COPY --from=builder /home/gradle/src/backend/app/build/libs/*.jar ./app.jar
+# The shadow plugin creates files with "-all" suffix
+COPY --from=builder /home/gradle/src/backend/app/build/libs/*-all.jar ./app.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]

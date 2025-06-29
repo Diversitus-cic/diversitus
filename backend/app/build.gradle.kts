@@ -2,6 +2,12 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     application
+    id("com.github.johnrengelman.shadow") version "8.1.1"
+}
+
+// Add this JVM target configuration
+kotlin {
+    jvmToolchain(17) // Match your Docker image (amazoncorretto:17)
 }
 
 dependencies {
@@ -24,14 +30,4 @@ dependencies {
 
 application {
     mainClass.set("com.diversitus.ApplicationKt")
-}
-
-// This task creates a single "fat" JAR file containing all dependencies.
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = application.mainClass.get()
-    }
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(sourceSets.main.get().output) { include("**/.*") }
-    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
 }

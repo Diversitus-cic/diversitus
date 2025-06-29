@@ -1,17 +1,13 @@
 package com.diversitus.data
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
-import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
+import aws.sdk.kotlin.services.dynamodb.model.*
 import aws.sdk.kotlin.services.dynamodb.model.ScanRequest
 import com.diversitus.model.Job
 
-class JobRepository {
+class JobRepository(private val dbClient: DynamoDbClient) {
     private val tableName = System.getenv("JOBS_TABLE_NAME")
         ?: throw IllegalStateException("Environment variable JOBS_TABLE_NAME not set")
-
-    // The AWS SDK for Kotlin will automatically detect the region and credentials
-    // from the Lambda execution environment.
-    private val dbClient = DynamoDbClient.fromEnvironment()
 
     /**
      * Scans and returns all jobs from the DynamoDB table.
