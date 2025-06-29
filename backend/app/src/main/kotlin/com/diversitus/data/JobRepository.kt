@@ -3,7 +3,7 @@ package com.diversitus.data
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.*
 import aws.sdk.kotlin.services.dynamodb.model.ScanRequest
-import com.diversitus.model.Job
+import com.diversitus.model.*
 
 class JobRepository(private val dbClient: DynamoDbClient) {
     private val tableName = System.getenv("JOBS_TABLE_NAME")

@@ -1,7 +1,7 @@
 package com.diversitus.plugins
 
 import com.diversitus.data.JobRepository
-import com.diversitus.model.NeurodiversityProfile
+import com.diversitus.model.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*

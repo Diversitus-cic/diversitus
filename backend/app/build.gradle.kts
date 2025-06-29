@@ -10,10 +10,15 @@ kotlin {
     jvmToolchain(17) // Match your Docker image (amazoncorretto:17)
 }
 
+repositories {
+    // Explicitly declare Maven Central as the repository for dependencies.
+    mavenCentral()
+}
+
 dependencies {
-    // Ktor
+    // Ktor - All versions managed by libs.versions.toml
     implementation(libs.ktor.server.core)
-    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.lambda)
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
