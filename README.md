@@ -9,3 +9,4 @@ Backend
 
 Deployment
 * Pulumi with state stored in AWS
+* Includes DB seeding currently
