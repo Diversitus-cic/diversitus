@@ -1,3 +1,5 @@
 encryptionsalt: v1:Cio6kGFTSLA=:v1:9bbUp1psJsKNwQFt:KyKslE/XAVhpK011ZLKRtofJAqRNlQ==
 config:
   aws:region: eu-west-1
+  diversitus:domainName: api.diversitus.uk
+  diversitus:rootDomain: diversitus.uk.

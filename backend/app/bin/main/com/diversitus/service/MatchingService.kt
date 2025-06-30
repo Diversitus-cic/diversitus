@@ -43,6 +43,7 @@ class MatchingService(
 
             val score = 1.0 / (1.0 + sqrt(sumOfSquares)) // Similarity score between 0 and 1
             MatchResult(job, company, score)
-        }.sortedByDescending { it.score }
+        }.filter { it.score > 0.15 } // Only include jobs with a score above the threshold.
+         .sortedByDescending { it.score }
     }
 }

@@ -5,6 +5,9 @@ import * as path from "path";
 import { marshall } from "@aws-sdk/util-dynamodb";
 
 const config = new pulumi.Config();
+// Read the domain configuration
+const domainName = config.require("domainName"); // e.g., api.yourdomain.com
+const rootDomain = config.require("rootDomain"); // e.g., yourdomain.com
 
 // 1. Create an ECR repository to store our Docker image.
 const repo = new awsx.ecr.Repository("diversitus-repo", {
@@ -42,9 +45,9 @@ const companiesTable = new aws.dynamodb.Table("diversitus-companies-table", {
 
 // Seed the companies table with initial data.
 const initialCompaniesData = [
-    { id: "comp-1", name: "Creative Co.", traits: { "work_life_balance": 9, "collaboration": 8 } },
-    { id: "comp-2", name: "Logic Inc.", traits: { "deep_focus": 9, "autonomy": 7 } },
-    { id: "comp-3", name: "DataDriven Corp", traits: { "pattern_recognition": 9, "deep_focus": 8 } },
+    { id: "comp-1", name: "Creative Co.", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
+    { id: "comp-2", name: "Logic Inc.", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
+    { id: "comp-3", name: "DataDriven Corp", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
 ];
 
 initialCompaniesData.forEach((company, i) => {
@@ -57,11 +60,11 @@ initialCompaniesData.forEach((company, i) => {
 
 // Seed the jobs table with updated data linking to companies.
 const initialJobsData = [
-    { id: "job-1", companyId: "comp-1", title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9 } },
-    { id: "job-2", companyId: "comp-2", title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8 } },
-    { id: "job-3", companyId: "comp-1", title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10 } },
-    { id: "job-4", companyId: "comp-3", title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9 } },
-    { id: "job-5", companyId: "comp-2", title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8 } },
+    { id: "job-1", companyId: "comp-1", title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9, "working_from_home": 9 } },
+    { id: "job-2", companyId: "comp-2", title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8, "quiet_office": 8 } },
+    { id: "job-3", companyId: "comp-1", title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10, "working_from_home": 10 } },
+    { id: "job-4", companyId: "comp-3", title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9, "quiet_office": 7 } },
+    { id: "job-5", companyId: "comp-2", title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8, "working_from_home": 7 } },
 ];
 
 initialJobsData.forEach((job, i) => {
@@ -90,12 +93,50 @@ new aws.iam.RolePolicy("diversitus-db-access-policy", {
     })),
 });
 
-// 6. Create an ECS Cluster, Load Balancer, and the Fargate Service.
+// 6. Create a new Route 53 hosted zone for the root domain.
+// IMPORTANT: After the zone is created, you must go to your domain registrar
+// and update the name servers for your domain to the ones assigned by AWS.
+// These will be available in the Pulumi stack outputs.
+const hostedZone = new aws.route53.Zone("diversitus-zone", {
+    name: rootDomain,
+    // This creates a public hosted zone. For a private zone, you would need to
+    // associate it with a VPC, e.g., `vpcs: [{ vpcId: myVpc.id }]`
+});
+
+// 7. Provision a new ACM certificate for your domain.
+const certificate = new aws.acm.Certificate("cert", {
+    domainName: domainName,
+    validationMethod: "DNS",
+});
+
+// 8. Create the DNS record to validate the ACM certificate.
+const certificateValidation = new aws.route53.Record(`${domainName}-validation`, {
+    name: certificate.domainValidationOptions[0].resourceRecordName,
+    type: certificate.domainValidationOptions[0].resourceRecordType,
+    records: [certificate.domainValidationOptions[0].resourceRecordValue],
+    zoneId: hostedZone.zoneId,
+    ttl: 300,
+});
+
+// 9. Create a CertificateValidation resource to wait for the validation to complete.
+const validatedCertificate = new aws.acm.CertificateValidation("certValidation", {
+    certificateArn: certificate.arn,
+    validationRecordFqdns: [certificateValidation.fqdn],
+});
+
+// 10. Create an ECS Cluster, Load Balancer, and the Fargate Service.
 const cluster = new aws.ecs.Cluster("diversitus-cluster");
 const alb = new awsx.lb.ApplicationLoadBalancer("diversitus-lb", {
     // Configure the default target group to expect targets on port 8080, matching the Ktor application.
     defaultTargetGroup: {
         port: 8080,
+        protocol: "HTTP", // Traffic between ALB and Fargate is unencrypted and thus cheaper.
+    },
+    // Override the default listener to use HTTPS on port 443 with our validated certificate.
+    listener: {
+        port: 443,
+        protocol: "HTTPS",
+        certificateArn: validatedCertificate.certificateArn,
     },
 });
 const service = new awsx.ecs.FargateService("diversitus-fargate-service", {
@@ -131,5 +172,20 @@ const service = new awsx.ecs.FargateService("diversitus-fargate-service", {
     assignPublicIp: true,
 });
 
-// 8. Export the public URL of the Load Balancer.
-export const url = alb.loadBalancer.dnsName;
+// 11. Create a Route 53 Alias record to point your custom domain to the ALB.
+new aws.route53.Record(domainName, {
+    name: domainName,
+    type: "A",
+    zoneId: hostedZone.zoneId,
+    aliases: [{
+        name: alb.loadBalancer.dnsName,
+        zoneId: alb.loadBalancer.zoneId,
+        evaluateTargetHealth: true,
+    }],
+});
+
+// 12. Export the secure, custom URL of your service.
+export const url = pulumi.interpolate`https://${domainName}`;
+
+// Export the name servers for the hosted zone so you can update your registrar.
+export const nameServers = hostedZone.nameServers;
