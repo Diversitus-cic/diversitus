@@ -27,6 +27,7 @@ jobs:
         uses: pulumi/actions@v5
         with:
           command: up
+          cloud-url: s3://diversitus-pulumi-state-2025 # Explicitly log in to the S3 backend
           stack-name: diversitus/diversitus_development # Your Pulumi stack name
           work-dir: ./infrastructure # The directory of your Pulumi project
         env:
