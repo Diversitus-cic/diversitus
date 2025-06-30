@@ -34,3 +34,17 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "eu-west-1" # Set the AWS region explicitly
+
+      - name: Deployment Success Notification
+        if: success()
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo "✅ Infrastructure has been updated"
+          echo "🌐 Check your AWS console for deployed resources"
+
+      - name: Handle Deployment Failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          echo "🔍 Check the logs above for details"
+          echo "💡 You may need to run 'pulumi refresh' manually"
