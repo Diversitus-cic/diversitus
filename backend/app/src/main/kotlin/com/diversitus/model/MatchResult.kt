@@ -1,6 +1,7 @@
 package com.diversitus.model
 
 import kotlinx.serialization.Serializable
+import com.diversitus.model.Company
 
 @Serializable
 data class MatchResult(

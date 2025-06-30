@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 import java.util.UUID
 
 @Serializable
-data class Company(
-    val id: String = UUID.randomUUID().toString(),
+data class User(
+    var id: String = UUID.randomUUID().toString(),
     val name: String,
-    val traits: Map<String, Int>
+    val profile: NeurodiversityProfile
 )

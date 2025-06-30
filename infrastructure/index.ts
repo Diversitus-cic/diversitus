@@ -3,6 +3,7 @@ import * as aws from "@pulumi/aws";
 import * as awsx from "@pulumi/awsx";
 import * as path from "path";
 import { marshall } from "@aws-sdk/util-dynamodb";
+import { v4 as uuidv4 } from "uuid";
 
 const config = new pulumi.Config();
 // Read the domain configuration
@@ -44,13 +45,13 @@ const companiesTable = new aws.dynamodb.Table("diversitus-companies-table", {
 });
 
 // Seed the companies table with initial data.
-const initialCompaniesData = [
-    { id: "comp-1", name: "Creative Co.", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
-    { id: "comp-2", name: "Logic Inc.", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
-    { id: "comp-3", name: "DataDriven Corp", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
+const companies = [
+    { id: uuidv4(), name: "Creative Co.", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
+    { id: uuidv4(), name: "Logic Inc.", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
+    { id: uuidv4(), name: "DataDriven Corp", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
 ];
 
-initialCompaniesData.forEach((company, i) => {
+companies.forEach((company, i) => {
     new aws.dynamodb.TableItem(`company-item-${i}`, {
         tableName: companiesTable.name,
         hashKey: companiesTable.hashKey,
@@ -60,11 +61,11 @@ initialCompaniesData.forEach((company, i) => {
 
 // Seed the jobs table with updated data linking to companies.
 const initialJobsData = [
-    { id: "job-1", companyId: "comp-1", title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9, "working_from_home": 9 } },
-    { id: "job-2", companyId: "comp-2", title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8, "quiet_office": 8 } },
-    { id: "job-3", companyId: "comp-1", title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10, "working_from_home": 10 } },
-    { id: "job-4", companyId: "comp-3", title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9, "quiet_office": 7 } },
-    { id: "job-5", companyId: "comp-2", title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8, "working_from_home": 7 } },
+    { id: uuidv4(), companyId: companies[0].id, title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9, "working_from_home": 9 } },
+    { id: uuidv4(), companyId: companies[1].id, title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8, "quiet_office": 8 } },
+    { id: uuidv4(), companyId: companies[0].id, title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10, "working_from_home": 10 } },
+    { id: uuidv4(), companyId: companies[2].id, title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9, "quiet_office": 7 } },
+    { id: uuidv4(), companyId: companies[1].id, title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8, "working_from_home": 7 } },
 ];
 
 initialJobsData.forEach((job, i) => {

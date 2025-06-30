@@ -12,6 +12,7 @@ Deployment
 * Includes DB seeding currently
 
 Matching Engine
+
 Here is a step-by-step breakdown of how it works:
 
 * Data Aggregation: The service first fetches all jobs and their corresponding company data.
