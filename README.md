@@ -10,3 +10,5 @@ Backend
 Deployment
 * Pulumi with state stored in AWS
 * Includes DB seeding currently
+
+Updated 30/06/2025
