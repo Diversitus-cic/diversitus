@@ -32,6 +32,7 @@ jobs:
           work-dir: ./infrastructure # The directory of your Pulumi project
         env:
           # Pass the secrets to the Pulumi action
+          PULUMI_CONFIG_PASSPHRASE: ${{ secrets.PULUMI_CONFIG_PASSPHRASE }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: "eu-west-1" # Set the AWS region explicitly
