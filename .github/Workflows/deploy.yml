@@ -1,5 +1,5 @@
 # This workflow will run when code is pushed to the 'main' branch.
-name: Deploy to AWS
+name: Deploy changes to AWS
 
 on:
   push:
