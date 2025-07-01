@@ -60,8 +60,14 @@ fun Application.configureRouting(
             }
 
             get("/{id}") {
-                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID required")
-                val user = userRepository.getUserById(id)
+                val identifier = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID or Email required")
+
+                val user = if ("@" in identifier) {
+                    userRepository.getUserByEmail(identifier)
+                } else {
+                    userRepository.getUserById(identifier)
+                }
+
                 if (user != null) {
                     call.respond(user)
                 } else {

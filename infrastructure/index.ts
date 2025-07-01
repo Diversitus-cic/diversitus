@@ -46,9 +46,17 @@ const companiesTable = new aws.dynamodb.Table("diversitus-companies-table", {
 
 // 3c. Create a DynamoDB table to store user data.
 const usersTable = new aws.dynamodb.Table("diversitus-users-table", {
-    attributes: [{ name: "id", type: "S" }],
+    attributes: [
+        { name: "id", type: "S" },
+        { name: "email", type: "S" },
+    ],
     hashKey: "id",
     billingMode: "PAY_PER_REQUEST",
+    globalSecondaryIndexes: [{
+        name: "EmailIndex",
+        hashKey: "email",
+        projectionType: "ALL",
+    }],
     tags: { Project: "Diversitus" },
 });
 

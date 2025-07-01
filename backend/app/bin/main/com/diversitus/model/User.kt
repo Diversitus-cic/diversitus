@@ -5,7 +5,8 @@ import java.util.UUID
 
 @Serializable
 data class User(
-    var id: String = UUID.randomUUID().toString(),
+    val id: String = UUID.randomUUID().toString(),
     val name: String,
+    val email: String,
     val profile: NeurodiversityProfile
 )
