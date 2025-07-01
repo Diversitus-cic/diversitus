@@ -105,7 +105,7 @@ new aws.iam.RolePolicy("diversitus-db-access-policy", {
         Statement: [{
             Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:PutItem"],
             Effect: "Allow",
-            Resource: [jobsArn, companiesArn, usersArn],
+            Resource: [jobsArn, companiesArn, usersArn, `${usersArn}/index/EmailIndex`],
         }],
     })),
 });
