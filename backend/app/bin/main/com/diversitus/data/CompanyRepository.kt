@@ -2,6 +2,7 @@ package com.diversitus.data
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
+import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.BatchGetItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.ScanRequest
 import com.diversitus.model.Company
@@ -30,6 +31,23 @@ class CompanyRepository(private val dbClient: DynamoDbClient, private val tableN
 
         val response = dbClient.batchGetItem(request)
         return response.responses?.get(tableName)?.map { it.toCompany() } ?: emptyList()
+    }
+
+    suspend fun saveCompany(company: Company) {
+        val item = mapOf(
+            "id" to AttributeValue.S(company.id),
+            "name" to AttributeValue.S(company.name),
+            "traits" to AttributeValue.M(
+                company.traits.mapValues {
+                    AttributeValue.N(it.value.toString())
+                }
+            )
+        )
+        val request = PutItemRequest {
+            tableName = this@CompanyRepository.tableName
+            this.item = item
+        }
+        dbClient.putItem(request)
     }
 
     private fun Map<String, AttributeValue>.toCompany(): Company {

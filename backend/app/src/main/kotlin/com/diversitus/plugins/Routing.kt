@@ -6,6 +6,7 @@ import com.diversitus.data.UserRepository
 import com.diversitus.model.*
 import com.diversitus.service.*
 import io.ktor.server.application.*
+import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -31,12 +32,24 @@ fun Application.configureRouting(
         /**
          * Retrieves a list of all available jobs.
          */
-        get("/jobs") {
-            call.respond(jobRepository.getAllJobs())
+        route("/jobs") {
+            get {
+                call.respond(jobRepository.getAllJobs())
+            }
+            post {
+                val job = call.receive<Job>()
+                jobRepository.saveJob(job)
+                call.respond(HttpStatusCode.Created, job)
+            }
         }
 
         route("/companies") {
             get { call.respond(companyRepository.getAllCompanies()) }
+            post {
+                val company = call.receive<Company>()
+                companyRepository.saveCompany(company)
+                call.respond(HttpStatusCode.Created, company)
+            }
         }
 
         route("/users") {
@@ -44,6 +57,16 @@ fun Application.configureRouting(
                 val user = call.receive<User>()
                 userRepository.saveUser(user)
                 call.respond(user)
+            }
+
+            get("/{id}") {
+                val id = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID required")
+                val user = userRepository.getUserById(id)
+                if (user != null) {
+                    call.respond(user)
+                } else {
+                    call.respond(HttpStatusCode.NotFound, "User not found")
+                }
             }
         }
 
