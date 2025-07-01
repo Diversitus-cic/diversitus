@@ -44,6 +44,14 @@ const companiesTable = new aws.dynamodb.Table("diversitus-companies-table", {
     tags: { Project: "Diversitus" },
 });
 
+// 3c. Create a DynamoDB table to store user data.
+const usersTable = new aws.dynamodb.Table("diversitus-users-table", {
+    attributes: [{ name: "id", type: "S" }],
+    hashKey: "id",
+    billingMode: "PAY_PER_REQUEST",
+    tags: { Project: "Diversitus" },
+});
+
 // Seed the companies table with initial data.
 const companies = [
     { id: uuidv4(), name: "Creative Co.", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
@@ -84,12 +92,12 @@ const taskRole = new aws.iam.Role("diversitus-task-role", {
 // 5. Create and attach an inline policy to the role, allowing it to access DynamoDB.
 new aws.iam.RolePolicy("diversitus-db-access-policy", {
     role: taskRole.id,
-    policy: pulumi.all([jobsTable.arn, companiesTable.arn]).apply(([jobsArn, companiesArn]) => JSON.stringify({
+    policy: pulumi.all([jobsTable.arn, companiesTable.arn, usersTable.arn]).apply(([jobsArn, companiesArn, usersArn]) => JSON.stringify({
         Version: "2012-10-17",
         Statement: [{
-            Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem"],
+            Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:PutItem"],
             Effect: "Allow",
-            Resource: [jobsArn, companiesArn],
+            Resource: [jobsArn, companiesArn, usersArn],
         }],
     })),
 });
@@ -162,6 +170,7 @@ const service = new awsx.ecs.FargateService("diversitus-fargate-service", {
             environment: [
                 { name: "JOBS_TABLE_NAME", value: jobsTable.name },
                 { name: "COMPANIES_TABLE_NAME", value: companiesTable.name },
+                { name: "USERS_TABLE_NAME", value: usersTable.name },
                 { name: "AWS_REGION", value: aws.getRegion().then(r => r.name) },
             ],
         },

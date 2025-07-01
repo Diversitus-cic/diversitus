@@ -1,7 +1,8 @@
 package com.diversitus.plugins
 
-import com.diversitus.model.HealthStatus
+import com.diversitus.data.CompanyRepository
 import com.diversitus.data.JobRepository
+import com.diversitus.data.UserRepository
 import com.diversitus.model.*
 import com.diversitus.service.*
 import io.ktor.server.application.*
@@ -9,10 +10,15 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.configureRouting(jobRepository: JobRepository, matchingService: MatchingService) {
+fun Application.configureRouting(
+    jobRepository: JobRepository,
+    companyRepository: CompanyRepository,
+    userRepository: UserRepository,
+    matchingService: MatchingService
+) {
     routing {
         get("/") {
-            call.respondText("Hello from Diversitus Matching Service!")
+            call.respondText("Welcome to the Diversitus API!")
         }
 
         /**
@@ -26,8 +32,19 @@ fun Application.configureRouting(jobRepository: JobRepository, matchingService: 
          * Retrieves a list of all available jobs.
          */
         get("/jobs") {
-            val jobs = jobRepository.getAllJobs()
-            call.respond(jobs)
+            call.respond(jobRepository.getAllJobs())
+        }
+
+        route("/companies") {
+            get { call.respond(companyRepository.getAllCompanies()) }
+        }
+
+        route("/users") {
+            post {
+                val user = call.receive<User>()
+                userRepository.saveUser(user)
+                call.respond(user)
+            }
         }
 
         /**
@@ -37,9 +54,8 @@ fun Application.configureRouting(jobRepository: JobRepository, matchingService: 
          */
         post("/match") {
             val profile = call.receive<NeurodiversityProfile>()
-            // Delegate the matching logic to the MatchingService
-            val matchedJobs = matchingService.findMatchingJobs(profile)
-            call.respond(matchedJobs)
+            val matches = matchingService.findMatchingJobs(profile)
+            call.respond(matches)
         }
     }
 }
