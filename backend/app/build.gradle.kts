@@ -31,8 +31,7 @@ dependencies {
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit)
 
-    //Open API Plugin
-    implementation("io.github.smiley4:ktor-openapi:5.1.0")
+    // No OpenAPI plugin - using manual documentation
 }
 
 application {
