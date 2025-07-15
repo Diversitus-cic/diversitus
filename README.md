@@ -3,7 +3,8 @@
 > **Neurodiversity Job Matching Platform**  
 > Connecting job seekers with opportunities based on trait compatibility
 
-![API Status](https://img.shields.io/website?url=https%3A//api.diversitus.uk/health&label=API%20Status)
+[![API Status](https://img.shields.io/badge/API-online-brightgreen)](https://api.diversitus.uk/health)
+![Live Status](https://img.shields.io/website?url=https%3A//api.diversitus.uk/health&label=Health&up_message=UP&down_message=DOWN&up_color=brightgreen&down_color=red)
 ![Kotlin](https://img.shields.io/badge/Kotlin-1.9.22-purple?logo=kotlin)
 ![Ktor](https://img.shields.io/badge/Ktor-2.3.8-blue?logo=ktor)
 ![AWS](https://img.shields.io/badge/AWS-ECS%20%7C%20DynamoDB-orange?logo=amazonaws)
