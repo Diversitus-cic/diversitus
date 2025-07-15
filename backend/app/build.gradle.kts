@@ -32,7 +32,7 @@ dependencies {
     testImplementation(libs.kotlin.test.junit)
 
     //Open API Plugin
-    implementation(libs.ktor.openapi)
+    implementation("io.github.smiley4:ktor-openapi:5.1.0")
 }
 
 application {
