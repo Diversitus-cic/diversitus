@@ -29,6 +29,10 @@ fun Application.configureRouting(
         get("/health") {
             call.respond(HealthStatus(status = "UP"))
         }
+        
+        head("/health") {
+            call.respond(HttpStatusCode.OK)
+        }
 
         get("/jobs") {
             call.respond(jobRepository.getAllJobs())
