@@ -3,6 +3,7 @@ kotlin = "1.9.22"
 ktor = "2.3.8"
 logback = "1.4.14"
 awsSdkKotlin = "1.2.1"
+ktor-openapi = "5.1.0"
 
 [libraries]
 # Ktor
@@ -18,6 +19,9 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "lo
 
 # AWS SDK for Kotlin
 aws-sdk-dynamodb = { module = "aws.sdk.kotlin:dynamodb", version.ref = "awsSdkKotlin" }
+
+# OpenAPI ktor plugin
+ktor-openapi = { module = "io.github.smiley4:ktor-openapi", version.ref = "ktor-openapi" }
 
 # Testing
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }

@@ -25,3 +25,68 @@ replay_pid*
 
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin/
+
+# Gradle files
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Build output
+bin/
+out/
+target/
+
+# Kotlin/Java specific
+*.kotlin_module
+*.kotlin_builtins
+
+# Application specific
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+*.lcov
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
