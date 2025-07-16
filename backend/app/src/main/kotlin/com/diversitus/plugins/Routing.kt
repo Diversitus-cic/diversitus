@@ -19,7 +19,13 @@ data class HealthStatus(val status: String)
 data class CompanyLoginRequest(val email: String)
 
 @Serializable
-data class LoginResponse(val success: Boolean, val company: Company? = null, val message: String? = null)
+data class UserLoginRequest(val email: String)
+
+@Serializable
+data class CompanyLoginResponse(val success: Boolean, val company: Company? = null, val message: String? = null)
+
+@Serializable
+data class UserLoginResponse(val success: Boolean, val user: User? = null, val message: String? = null)
 
 fun Application.configureRouting(
     jobRepository: JobRepository,
@@ -109,11 +115,25 @@ fun Application.configureRouting(
             val company = companyRepository.getCompanyByEmail(loginRequest.email)
             
             if (company != null) {
-                call.respond(LoginResponse(success = true, company = company))
+                call.respond(CompanyLoginResponse(success = true, company = company))
             } else {
                 call.respond(
                     HttpStatusCode.NotFound,
-                    LoginResponse(success = false, message = "Company not found with email: ${loginRequest.email}")
+                    CompanyLoginResponse(success = false, message = "Company not found with email: ${loginRequest.email}")
+                )
+            }
+        }
+
+        post("/auth/user/login") {
+            val loginRequest = call.receive<UserLoginRequest>()
+            val user = userRepository.getUserByEmail(loginRequest.email)
+            
+            if (user != null) {
+                call.respond(UserLoginResponse(success = true, user = user))
+            } else {
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    UserLoginResponse(success = false, message = "User not found with email: ${loginRequest.email}")
                 )
             }
         }

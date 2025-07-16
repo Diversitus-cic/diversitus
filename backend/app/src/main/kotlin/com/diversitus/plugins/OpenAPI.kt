@@ -344,6 +344,76 @@ private val openApiSpec = """
         }
       }
     },
+    "/auth/user/login": {
+      "post": {
+        "summary": "User login",
+        "description": "Authenticates a user using email address",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "user@example.com"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {"type": "string"},
+                        "name": {"type": "string"},
+                        "email": {"type": "string"},
+                        "profile": {
+                          "type": "object",
+                          "properties": {
+                            "traits": {
+                              "type": "object",
+                              "additionalProperties": {"type": "integer"}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users": {
       "post": {
         "summary": "Register a new user",

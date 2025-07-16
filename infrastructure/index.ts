@@ -100,6 +100,57 @@ initialJobsData.forEach((job, i) => {
     });
 });
 
+// Seed the users table with initial test data.
+const initialUsersData = [
+    { 
+        id: uuidv4(), 
+        name: "Alice Johnson", 
+        email: "alice@example.com", 
+        profile: { 
+            traits: { 
+                "attention_to_detail": 8, 
+                "visual_thinking": 9, 
+                "working_from_home": 10,
+                "collaboration": 7
+            } 
+        } 
+    },
+    { 
+        id: uuidv4(), 
+        name: "Bob Smith", 
+        email: "bob@example.com", 
+        profile: { 
+            traits: { 
+                "problem_solving": 9, 
+                "systematic_thinking": 8, 
+                "quiet_office": 9,
+                "deep_focus": 8
+            } 
+        } 
+    },
+    { 
+        id: uuidv4(), 
+        name: "Carol Williams", 
+        email: "carol@example.com", 
+        profile: { 
+            traits: { 
+                "pattern_recognition": 10, 
+                "attention_to_detail": 9, 
+                "quiet_office": 8,
+                "working_from_home": 6
+            } 
+        } 
+    },
+];
+
+initialUsersData.forEach((user, i) => {
+    new aws.dynamodb.TableItem(`user-item-${i}`, {
+        tableName: usersTable.name,
+        hashKey: usersTable.hashKey,
+        item: JSON.stringify(marshall(user)),
+    });
+});
+
 // 4. Create an IAM role for the Fargate Task.
 const taskRole = new aws.iam.Role("diversitus-task-role", {
     assumeRolePolicy: aws.iam.assumeRolePolicyForPrincipal({ Service: "ecs-tasks.amazonaws.com" }),
