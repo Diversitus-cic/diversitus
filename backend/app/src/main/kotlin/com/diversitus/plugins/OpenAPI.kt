@@ -97,12 +97,23 @@ private val openApiSpec = """
     },
     "/jobs": {
       "get": {
-        "summary": "Get all jobs",
-        "description": "Retrieves a list of all available job listings",
+        "summary": "Get jobs",
+        "description": "Retrieves job listings. Returns all jobs if no companyId is provided, or jobs for a specific company if companyId is provided.",
         "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Optional: Filter jobs by company ID"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "List of all jobs",
+            "description": "List of jobs (filtered by companyId if provided)",
             "content": {
               "application/json": {
                 "schema": {
@@ -127,8 +138,8 @@ private val openApiSpec = """
         }
       },
       "post": {
-        "summary": "Create a new job",
-        "description": "Creates a new job listing",
+        "summary": "Create or update job",
+        "description": "Creates a new job or updates an existing one. ID is auto-generated if not provided.",
         "tags": ["Jobs"],
         "requestBody": {
           "required": true,
@@ -137,22 +148,24 @@ private val openApiSpec = """
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": {"type": "string"},
-                  "companyId": {"type": "string"},
-                  "title": {"type": "string"},
-                  "description": {"type": "string"},
+                  "id": {"type": "string", "description": "Optional: Job ID (auto-generated if not provided)"},
+                  "companyId": {"type": "string", "description": "Required: Company ID this job belongs to"},
+                  "title": {"type": "string", "description": "Job title"},
+                  "description": {"type": "string", "description": "Job description"},
                   "traits": {
                     "type": "object",
-                    "additionalProperties": {"type": "integer"}
+                    "additionalProperties": {"type": "integer"},
+                    "description": "Job-specific trait requirements"
                   }
-                }
+                },
+                "required": ["companyId", "title", "description"]
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Job created successfully",
+            "description": "Job created or updated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -205,8 +218,8 @@ private val openApiSpec = """
         }
       },
       "post": {
-        "summary": "Create a new company",
-        "description": "Adds a new partner company",
+        "summary": "Create or update company",
+        "description": "Creates a new company or updates an existing one. ID is auto-generated if not provided.",
         "tags": ["Companies"],
         "requestBody": {
           "required": true,
@@ -215,21 +228,39 @@ private val openApiSpec = """
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": {"type": "string"},
-                  "name": {"type": "string"},
-                  "email": {"type": "string"},
+                  "id": {"type": "string", "description": "Optional: Company ID (auto-generated if not provided)"},
+                  "name": {"type": "string", "description": "Company name"},
+                  "email": {"type": "string", "description": "Company email address"},
                   "traits": {
                     "type": "object",
-                    "additionalProperties": {"type": "integer"}
+                    "additionalProperties": {"type": "integer"},
+                    "description": "Company trait scores"
                   }
-                }
+                },
+                "required": ["name", "email"]
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Company created successfully"
+            "description": "Company created or updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "email": {"type": "string"},
+                    "traits": {
+                      "type": "object",
+                      "additionalProperties": {"type": "integer"}
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -416,8 +447,8 @@ private val openApiSpec = """
     },
     "/users": {
       "post": {
-        "summary": "Register a new user",
-        "description": "Creates a new user account",
+        "summary": "Create or update user",
+        "description": "Creates a new user or updates an existing one. ID is auto-generated if not provided.",
         "tags": ["Users"],
         "requestBody": {
           "required": true,
@@ -426,25 +457,49 @@ private val openApiSpec = """
               "schema": {
                 "type": "object",
                 "properties": {
-                  "id": {"type": "string"},
-                  "email": {"type": "string"},
+                  "id": {"type": "string", "description": "Optional: User ID (auto-generated if not provided)"},
+                  "name": {"type": "string", "description": "User name"},
+                  "email": {"type": "string", "description": "User email address"},
                   "profile": {
                     "type": "object",
                     "properties": {
                       "traits": {
                         "type": "object",
-                        "additionalProperties": {"type": "integer"}
+                        "additionalProperties": {"type": "integer"},
+                        "description": "User neurodiversity trait scores"
                       }
                     }
                   }
-                }
+                },
+                "required": ["name", "email", "profile"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "User registered successfully"
+            "description": "User created or updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "email": {"type": "string"},
+                    "profile": {
+                      "type": "object",
+                      "properties": {
+                        "traits": {
+                          "type": "object",
+                          "additionalProperties": {"type": "integer"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

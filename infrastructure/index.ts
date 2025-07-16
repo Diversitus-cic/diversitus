@@ -28,9 +28,15 @@ const image = new awsx.ecr.Image("diversitus-image", {
 const jobsTable = new aws.dynamodb.Table("diversitus-jobs-table", {
     attributes: [
         { name: "id", type: "S" },
+        { name: "companyId", type: "S" },
     ],
     hashKey: "id",
     billingMode: "PAY_PER_REQUEST",
+    globalSecondaryIndexes: [{
+        name: "CompanyIndex",
+        hashKey: "companyId",
+        projectionType: "ALL",
+    }],
     tags: {
         Project: "Diversitus",
     },
@@ -164,7 +170,7 @@ new aws.iam.RolePolicy("diversitus-db-access-policy", {
         Statement: [{
             Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:PutItem"],
             Effect: "Allow",
-            Resource: [jobsArn, companiesArn, usersArn, `${usersArn}/index/EmailIndex`, `${companiesArn}/index/EmailIndex`],
+            Resource: [jobsArn, companiesArn, usersArn, `${usersArn}/index/EmailIndex`, `${companiesArn}/index/EmailIndex`, `${jobsArn}/index/CompanyIndex`],
         }],
     })),
 });

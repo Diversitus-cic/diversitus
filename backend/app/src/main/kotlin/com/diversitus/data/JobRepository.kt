@@ -4,6 +4,7 @@ import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.ScanRequest
+import aws.sdk.kotlin.services.dynamodb.model.QueryRequest
 import com.diversitus.model.Job
 
 class JobRepository(private val dbClient: DynamoDbClient, private val tableName: String) {
@@ -14,6 +15,19 @@ class JobRepository(private val dbClient: DynamoDbClient, private val tableName:
         }
 
         val response = dbClient.scan(request)
+        return response.items?.map { it.toJob() } ?: emptyList()
+    }
+
+    suspend fun getJobsByCompanyId(companyId: String): List<Job> {
+        val request = QueryRequest {
+            tableName = this@JobRepository.tableName
+            indexName = "CompanyIndex"
+            keyConditionExpression = "companyId = :companyIdVal"
+            expressionAttributeValues = mapOf(
+                ":companyIdVal" to AttributeValue.S(companyId)
+            )
+        }
+        val response = dbClient.query(request)
         return response.items?.map { it.toJob() } ?: emptyList()
     }
 

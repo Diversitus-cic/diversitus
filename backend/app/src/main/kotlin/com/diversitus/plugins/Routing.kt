@@ -47,7 +47,13 @@ fun Application.configureRouting(
         }
 
         get("/jobs") {
-            call.respond(jobRepository.getAllJobs())
+            val companyId = call.request.queryParameters["companyId"]
+            val jobs = if (companyId != null) {
+                jobRepository.getJobsByCompanyId(companyId)
+            } else {
+                jobRepository.getAllJobs()
+            }
+            call.respond(jobs)
         }
 
         post("/jobs") {
