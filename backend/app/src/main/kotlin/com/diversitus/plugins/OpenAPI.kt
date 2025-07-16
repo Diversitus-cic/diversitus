@@ -128,7 +128,8 @@ private val openApiSpec = """
                       "traits": {
                         "type": "object",
                         "additionalProperties": {"type": "integer"}
-                      }
+                      },
+                      "createdAt": {"type": "string", "format": "date-time", "description": "ISO 8601 timestamp when the job was created"}
                     }
                   }
                 }
@@ -156,7 +157,8 @@ private val openApiSpec = """
                     "type": "object",
                     "additionalProperties": {"type": "integer"},
                     "description": "Job-specific trait requirements"
-                  }
+                  },
+                  "createdAt": {"type": "string", "format": "date-time", "description": "Optional: ISO 8601 timestamp (auto-generated if not provided)"}
                 },
                 "required": ["companyId", "title", "description"]
               }
@@ -178,7 +180,8 @@ private val openApiSpec = """
                     "traits": {
                       "type": "object",
                       "additionalProperties": {"type": "integer"}
-                    }
+                    },
+                    "createdAt": {"type": "string", "format": "date-time", "description": "ISO 8601 timestamp when the job was created"}
                   }
                 }
               }

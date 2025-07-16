@@ -91,11 +91,11 @@ companies.forEach((company, i) => {
 
 // Seed the jobs table with updated data linking to companies.
 const initialJobsData = [
-    { id: uuidv4(), companyId: companies[0].id, title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9, "working_from_home": 9 } },
-    { id: uuidv4(), companyId: companies[1].id, title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8, "quiet_office": 8 } },
-    { id: uuidv4(), companyId: companies[0].id, title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10, "working_from_home": 10 } },
-    { id: uuidv4(), companyId: companies[2].id, title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9, "quiet_office": 7 } },
-    { id: uuidv4(), companyId: companies[1].id, title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8, "working_from_home": 7 } },
+    { id: uuidv4(), companyId: companies[0].id, title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9, "working_from_home": 9 }, createdAt: new Date().toISOString() },
+    { id: uuidv4(), companyId: companies[1].id, title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8, "quiet_office": 8 }, createdAt: new Date().toISOString() },
+    { id: uuidv4(), companyId: companies[0].id, title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10, "working_from_home": 10 }, createdAt: new Date().toISOString() },
+    { id: uuidv4(), companyId: companies[2].id, title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9, "quiet_office": 7 }, createdAt: new Date().toISOString() },
+    { id: uuidv4(), companyId: companies[1].id, title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8, "working_from_home": 7 }, createdAt: new Date().toISOString() },
 ];
 
 initialJobsData.forEach((job, i) => {

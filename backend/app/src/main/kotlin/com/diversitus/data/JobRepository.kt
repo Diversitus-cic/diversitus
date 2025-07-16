@@ -41,7 +41,8 @@ class JobRepository(private val dbClient: DynamoDbClient, private val tableName:
                 job.traits.mapValues {
                     AttributeValue.N(it.value.toString())
                 }
-            )
+            ),
+            "createdAt" to AttributeValue.S(job.createdAt)
         )
         val request = PutItemRequest {
             tableName = this@JobRepository.tableName
@@ -59,7 +60,8 @@ class JobRepository(private val dbClient: DynamoDbClient, private val tableName:
             description = this["description"]?.asS() ?: "",
             traits = this["traits"]?.asM()?.mapValues {
                 it.value.asN()?.toInt() ?: 0
-            } ?: emptyMap()
+            } ?: emptyMap(),
+            createdAt = this["createdAt"]?.asS() ?: ""
         )
     }
 }
