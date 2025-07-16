@@ -3,6 +3,7 @@ package com.diversitus.plugins
 import com.diversitus.data.CompanyRepository
 import com.diversitus.data.JobRepository
 import com.diversitus.data.UserRepository
+import com.diversitus.data.MessageRepository
 import com.diversitus.model.*
 import com.diversitus.service.*
 import io.ktor.server.application.*
@@ -31,6 +32,7 @@ fun Application.configureRouting(
     jobRepository: JobRepository,
     companyRepository: CompanyRepository,
     userRepository: UserRepository,
+    messageRepository: MessageRepository,
     matchingService: MatchingService
 ) {
     routing {
@@ -142,6 +144,30 @@ fun Application.configureRouting(
                     UserLoginResponse(success = false, message = "User not found with email: ${loginRequest.email}")
                 )
             }
+        }
+
+        post("/messages") {
+            val message = call.receive<Message>()
+            messageRepository.saveMessage(message)
+            call.respond(HttpStatusCode.Created, message)
+        }
+
+        get("/messages/company/{companyId}") {
+            val companyId = call.parameters["companyId"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Company ID required")
+            val messages = messageRepository.getMessagesForCompany(companyId)
+            call.respond(messages)
+        }
+
+        get("/messages/user/{userId}") {
+            val userId = call.parameters["userId"] ?: return@get call.respond(HttpStatusCode.BadRequest, "User ID required")
+            val messages = messageRepository.getMessagesForUser(userId)
+            call.respond(messages)
+        }
+
+        get("/messages/thread/{threadId}") {
+            val threadId = call.parameters["threadId"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Thread ID required")
+            val messages = messageRepository.getMessagesByThread(threadId)
+            call.respond(messages)
         }
     }
 }

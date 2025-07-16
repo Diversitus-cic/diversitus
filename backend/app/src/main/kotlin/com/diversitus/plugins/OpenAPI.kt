@@ -588,6 +588,253 @@ private val openApiSpec = """
           }
         }
       }
+    },
+    "/messages": {
+      "post": {
+        "summary": "Send message",
+        "description": "Send a message from a user to a company with optional privacy controls",
+        "tags": ["Messages"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "string", "description": "Optional: Message ID (auto-generated if not provided)"},
+                  "fromUserId": {"type": "string", "description": "ID of the user sending the message"},
+                  "toCompanyId": {"type": "string", "description": "ID of the company receiving the message"},
+                  "jobId": {"type": "string", "description": "Optional: Job ID if message is about a specific job"},
+                  "content": {"type": "string", "description": "Message content"},
+                  "isAnonymous": {"type": "boolean", "description": "Whether to send anonymously (default: false)", "default": false},
+                  "senderName": {"type": "string", "description": "Optional: Sender name (only included if not anonymous)"},
+                  "senderProfile": {
+                    "type": "object",
+                    "description": "Optional: Sender profile (only included if not anonymous)",
+                    "properties": {
+                      "traits": {
+                        "type": "object",
+                        "additionalProperties": {"type": "integer"}
+                      }
+                    }
+                  },
+                  "threadId": {"type": "string", "description": "Optional: Thread ID for grouping related messages"},
+                  "createdAt": {"type": "string", "format": "date-time", "description": "Optional: ISO 8601 timestamp (auto-generated if not provided)"}
+                },
+                "required": ["fromUserId", "toCompanyId", "content"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Message sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string"},
+                    "fromUserId": {"type": "string"},
+                    "toCompanyId": {"type": "string"},
+                    "jobId": {"type": "string"},
+                    "content": {"type": "string"},
+                    "isAnonymous": {"type": "boolean"},
+                    "senderName": {"type": "string"},
+                    "senderProfile": {
+                      "type": "object",
+                      "properties": {
+                        "traits": {
+                          "type": "object",
+                          "additionalProperties": {"type": "integer"}
+                        }
+                      }
+                    },
+                    "isFromCompany": {"type": "boolean"},
+                    "threadId": {"type": "string"},
+                    "createdAt": {"type": "string", "format": "date-time"},
+                    "status": {"type": "string", "enum": ["SENT", "READ", "REPLIED"]}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/messages/company/{companyId}": {
+      "get": {
+        "summary": "Get messages for company",
+        "description": "Retrieves all messages sent to a specific company",
+        "tags": ["Messages"],
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Company ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of messages for the company",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {"type": "string"},
+                      "fromUserId": {"type": "string"},
+                      "toCompanyId": {"type": "string"},
+                      "jobId": {"type": "string"},
+                      "content": {"type": "string"},
+                      "isAnonymous": {"type": "boolean"},
+                      "senderName": {"type": "string"},
+                      "senderProfile": {
+                        "type": "object",
+                        "properties": {
+                          "traits": {
+                            "type": "object",
+                            "additionalProperties": {"type": "integer"}
+                          }
+                        }
+                      },
+                      "isFromCompany": {"type": "boolean"},
+                      "threadId": {"type": "string"},
+                      "createdAt": {"type": "string", "format": "date-time"},
+                      "status": {"type": "string", "enum": ["SENT", "READ", "REPLIED"]}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Company ID required"
+          }
+        }
+      }
+    },
+    "/messages/user/{userId}": {
+      "get": {
+        "summary": "Get messages for user",
+        "description": "Retrieves all messages sent by a specific user",
+        "tags": ["Messages"],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of messages from the user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {"type": "string"},
+                      "fromUserId": {"type": "string"},
+                      "toCompanyId": {"type": "string"},
+                      "jobId": {"type": "string"},
+                      "content": {"type": "string"},
+                      "isAnonymous": {"type": "boolean"},
+                      "senderName": {"type": "string"},
+                      "senderProfile": {
+                        "type": "object",
+                        "properties": {
+                          "traits": {
+                            "type": "object",
+                            "additionalProperties": {"type": "integer"}
+                          }
+                        }
+                      },
+                      "isFromCompany": {"type": "boolean"},
+                      "threadId": {"type": "string"},
+                      "createdAt": {"type": "string", "format": "date-time"},
+                      "status": {"type": "string", "enum": ["SENT", "READ", "REPLIED"]}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "User ID required"
+          }
+        }
+      }
+    },
+    "/messages/thread/{threadId}": {
+      "get": {
+        "summary": "Get messages by thread",
+        "description": "Retrieves all messages in a specific conversation thread",
+        "tags": ["Messages"],
+        "parameters": [
+          {
+            "name": "threadId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Thread ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of messages in the thread",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {"type": "string"},
+                      "fromUserId": {"type": "string"},
+                      "toCompanyId": {"type": "string"},
+                      "jobId": {"type": "string"},
+                      "content": {"type": "string"},
+                      "isAnonymous": {"type": "boolean"},
+                      "senderName": {"type": "string"},
+                      "senderProfile": {
+                        "type": "object",
+                        "properties": {
+                          "traits": {
+                            "type": "object",
+                            "additionalProperties": {"type": "integer"}
+                          }
+                        }
+                      },
+                      "isFromCompany": {"type": "boolean"},
+                      "threadId": {"type": "string"},
+                      "createdAt": {"type": "string", "format": "date-time"},
+                      "status": {"type": "string", "enum": ["SENT", "READ", "REPLIED"]}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Thread ID required"
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -610,6 +857,10 @@ private val openApiSpec = """
     {
       "name": "Authentication",
       "description": "Authentication and authorization endpoints"
+    },
+    {
+      "name": "Messages",
+      "description": "Messaging system between users and companies"
     }
   ]
 }

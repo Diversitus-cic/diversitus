@@ -74,6 +74,36 @@ const usersTable = new aws.dynamodb.Table("diversitus-users-table", {
     tags: { Project: "Diversitus" },
 });
 
+// 3d. Create a DynamoDB table to store messages.
+const messagesTable = new aws.dynamodb.Table("diversitus-messages-table", {
+    attributes: [
+        { name: "id", type: "S" },
+        { name: "toCompanyId", type: "S" },
+        { name: "fromUserId", type: "S" },
+        { name: "threadId", type: "S" },
+    ],
+    hashKey: "id",
+    billingMode: "PAY_PER_REQUEST",
+    globalSecondaryIndexes: [
+        {
+            name: "CompanyIndex",
+            hashKey: "toCompanyId",
+            projectionType: "ALL",
+        },
+        {
+            name: "UserIndex",
+            hashKey: "fromUserId",
+            projectionType: "ALL",
+        },
+        {
+            name: "ThreadIndex",
+            hashKey: "threadId",
+            projectionType: "ALL",
+        }
+    ],
+    tags: { Project: "Diversitus" },
+});
+
 // Seed the companies table with initial data.
 const companies = [
     { id: uuidv4(), name: "Creative Co.", email: "contact@creative-co.com", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
@@ -165,12 +195,23 @@ const taskRole = new aws.iam.Role("diversitus-task-role", {
 // 5. Create and attach an inline policy to the role, allowing it to access DynamoDB.
 new aws.iam.RolePolicy("diversitus-db-access-policy", {
     role: taskRole.id,
-    policy: pulumi.all([jobsTable.arn, companiesTable.arn, usersTable.arn]).apply(([jobsArn, companiesArn, usersArn]) => JSON.stringify({
+    policy: pulumi.all([jobsTable.arn, companiesTable.arn, usersTable.arn, messagesTable.arn]).apply(([jobsArn, companiesArn, usersArn, messagesArn]) => JSON.stringify({
         Version: "2012-10-17",
         Statement: [{
             Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:PutItem"],
             Effect: "Allow",
-            Resource: [jobsArn, companiesArn, usersArn, `${usersArn}/index/EmailIndex`, `${companiesArn}/index/EmailIndex`, `${jobsArn}/index/CompanyIndex`],
+            Resource: [
+                jobsArn, 
+                companiesArn, 
+                usersArn, 
+                messagesArn,
+                `${usersArn}/index/EmailIndex`, 
+                `${companiesArn}/index/EmailIndex`, 
+                `${jobsArn}/index/CompanyIndex`,
+                `${messagesArn}/index/CompanyIndex`,
+                `${messagesArn}/index/UserIndex`,
+                `${messagesArn}/index/ThreadIndex`
+            ],
         }],
     })),
 });
@@ -244,6 +285,7 @@ const service = new awsx.ecs.FargateService("diversitus-fargate-service", {
                 { name: "JOBS_TABLE_NAME", value: jobsTable.name },
                 { name: "COMPANIES_TABLE_NAME", value: companiesTable.name },
                 { name: "USERS_TABLE_NAME", value: usersTable.name },
+                { name: "MESSAGES_TABLE_NAME", value: messagesTable.name },
                 { name: "AWS_REGION", value: aws.getRegion().then(r => r.name) },
             ],
         },
