@@ -191,6 +191,7 @@ private val openApiSpec = """
                     "properties": {
                       "id": {"type": "string"},
                       "name": {"type": "string"},
+                      "email": {"type": "string"},
                       "traits": {
                         "type": "object",
                         "additionalProperties": {"type": "integer"}
@@ -216,6 +217,7 @@ private val openApiSpec = """
                 "properties": {
                   "id": {"type": "string"},
                   "name": {"type": "string"},
+                  "email": {"type": "string"},
                   "traits": {
                     "type": "object",
                     "additionalProperties": {"type": "integer"}
@@ -228,6 +230,116 @@ private val openApiSpec = """
         "responses": {
           "201": {
             "description": "Company created successfully"
+          }
+        }
+      }
+    },
+    "/companies/{id}": {
+      "get": {
+        "summary": "Get company by ID or email",
+        "description": "Retrieves a company by their ID or email address",
+        "tags": ["Companies"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Company ID or email address"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "email": {"type": "string"},
+                    "traits": {
+                      "type": "object",
+                      "additionalProperties": {"type": "integer"}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid ID/email"
+          },
+          "404": {
+            "description": "Company not found"
+          }
+        }
+      }
+    },
+    "/auth/company/login": {
+      "post": {
+        "summary": "Company login",
+        "description": "Authenticates a company using email address",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "company@example.com"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "company": {
+                      "type": "object",
+                      "properties": {
+                        "id": {"type": "string"},
+                        "name": {"type": "string"},
+                        "email": {"type": "string"},
+                        "traits": {
+                          "type": "object",
+                          "additionalProperties": {"type": "integer"}
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Company not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {"type": "boolean"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -366,6 +478,10 @@ private val openApiSpec = """
     {
       "name": "Matching",
       "description": "Job matching algorithms"
+    },
+    {
+      "name": "Authentication",
+      "description": "Authentication and authorization endpoints"
     }
   ]
 }

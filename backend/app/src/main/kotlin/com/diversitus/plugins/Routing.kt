@@ -15,6 +15,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class HealthStatus(val status: String)
 
+@Serializable
+data class CompanyLoginRequest(val email: String)
+
+@Serializable
+data class LoginResponse(val success: Boolean, val company: Company? = null, val message: String? = null)
+
 fun Application.configureRouting(
     jobRepository: JobRepository,
     companyRepository: CompanyRepository,
@@ -54,6 +60,22 @@ fun Application.configureRouting(
             call.respond(HttpStatusCode.Created, company)
         }
 
+        get("/companies/{id}") {
+            val identifier = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Company ID or Email required")
+
+            val company = if ("@" in identifier) {
+                companyRepository.getCompanyByEmail(identifier)
+            } else {
+                companyRepository.getCompaniesByIds(setOf(identifier)).firstOrNull()
+            }
+
+            if (company != null) {
+                call.respond(company)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Company not found")
+            }
+        }
+
         post("/users") {
             val user = call.receive<User>()
             userRepository.saveUser(user)
@@ -80,6 +102,20 @@ fun Application.configureRouting(
             val profile = call.receive<NeurodiversityProfile>()
             val matches = matchingService.findMatchingJobs(profile)
             call.respond(matches)
+        }
+
+        post("/auth/company/login") {
+            val loginRequest = call.receive<CompanyLoginRequest>()
+            val company = companyRepository.getCompanyByEmail(loginRequest.email)
+            
+            if (company != null) {
+                call.respond(LoginResponse(success = true, company = company))
+            } else {
+                call.respond(
+                    HttpStatusCode.NotFound,
+                    LoginResponse(success = false, message = "Company not found with email: ${loginRequest.email}")
+                )
+            }
         }
     }
 }

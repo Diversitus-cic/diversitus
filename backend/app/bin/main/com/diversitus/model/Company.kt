@@ -7,5 +7,6 @@ import java.util.UUID
 data class Company(
     val id: String = UUID.randomUUID().toString(),
     val name: String,
+    val email: String,
     val traits: Map<String, Int>
 )

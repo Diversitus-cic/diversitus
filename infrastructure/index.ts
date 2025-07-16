@@ -38,9 +38,17 @@ const jobsTable = new aws.dynamodb.Table("diversitus-jobs-table", {
 
 // 3b. Create a DynamoDB table to store company data.
 const companiesTable = new aws.dynamodb.Table("diversitus-companies-table", {
-    attributes: [{ name: "id", type: "S" }],
+    attributes: [
+        { name: "id", type: "S" },
+        { name: "email", type: "S" },
+    ],
     hashKey: "id",
     billingMode: "PAY_PER_REQUEST",
+    globalSecondaryIndexes: [{
+        name: "EmailIndex",
+        hashKey: "email",
+        projectionType: "ALL",
+    }],
     tags: { Project: "Diversitus" },
 });
 
@@ -62,9 +70,9 @@ const usersTable = new aws.dynamodb.Table("diversitus-users-table", {
 
 // Seed the companies table with initial data.
 const companies = [
-    { id: uuidv4(), name: "Creative Co.", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
-    { id: uuidv4(), name: "Logic Inc.", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
-    { id: uuidv4(), name: "DataDriven Corp", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
+    { id: uuidv4(), name: "Creative Co.", email: "contact@creative-co.com", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
+    { id: uuidv4(), name: "Logic Inc.", email: "hr@logic-inc.com", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
+    { id: uuidv4(), name: "DataDriven Corp", email: "jobs@datadriven-corp.com", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
 ];
 
 companies.forEach((company, i) => {
@@ -105,7 +113,7 @@ new aws.iam.RolePolicy("diversitus-db-access-policy", {
         Statement: [{
             Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:PutItem"],
             Effect: "Allow",
-            Resource: [jobsArn, companiesArn, usersArn, `${usersArn}/index/EmailIndex`],
+            Resource: [jobsArn, companiesArn, usersArn, `${usersArn}/index/EmailIndex`, `${companiesArn}/index/EmailIndex`],
         }],
     })),
 });

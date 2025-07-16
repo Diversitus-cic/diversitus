@@ -5,6 +5,7 @@ import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.BatchGetItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.ScanRequest
+import aws.sdk.kotlin.services.dynamodb.model.QueryRequest
 import com.diversitus.model.Company
 
 class CompanyRepository(private val dbClient: DynamoDbClient, private val tableName: String) {
@@ -33,10 +34,24 @@ class CompanyRepository(private val dbClient: DynamoDbClient, private val tableN
         return response.responses?.get(tableName)?.map { it.toCompany() } ?: emptyList()
     }
 
+    suspend fun getCompanyByEmail(email: String): Company? {
+        val request = QueryRequest {
+            tableName = this@CompanyRepository.tableName
+            indexName = "EmailIndex"
+            keyConditionExpression = "email = :emailVal"
+            expressionAttributeValues = mapOf(
+                ":emailVal" to AttributeValue.S(email)
+            )
+        }
+        val response = dbClient.query(request)
+        return response.items?.firstOrNull()?.toCompany()
+    }
+
     suspend fun saveCompany(company: Company) {
         val item = mapOf(
             "id" to AttributeValue.S(company.id),
             "name" to AttributeValue.S(company.name),
+            "email" to AttributeValue.S(company.email),
             "traits" to AttributeValue.M(
                 company.traits.mapValues {
                     AttributeValue.N(it.value.toString())
@@ -55,6 +70,7 @@ class CompanyRepository(private val dbClient: DynamoDbClient, private val tableN
             id = this["id"]?.asS()
                 ?: throw IllegalStateException("Company item in DynamoDB is missing an 'id' attribute."),
             name = this["name"]?.asS() ?: "",
+            email = this["email"]?.asS() ?: "",
             traits = this["traits"]?.asM()?.mapValues {
                 it.value.asN()?.toInt() ?: 0
             } ?: emptyMap()
