@@ -12,6 +12,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.http.*
 import kotlinx.serialization.Serializable
+import java.util.UUID
+
+fun generateThreadId(fromUserId: String, toCompanyId: String, jobId: String?): String {
+    val jobSuffix = if (jobId != null) "_job_${jobId}" else "_general"
+    return "thread_${fromUserId}_${toCompanyId}${jobSuffix}_${UUID.randomUUID().toString().take(8)}"
+}
 
 @Serializable
 data class HealthStatus(val status: String)
@@ -148,8 +154,31 @@ fun Application.configureRouting(
 
         post("/messages") {
             val message = call.receive<Message>()
-            messageRepository.saveMessage(message)
-            call.respond(HttpStatusCode.Created, message)
+            
+            // Automatic thread management
+            val messageWithThread = if (message.threadId == null) {
+                // Look for existing thread between these participants for this job
+                val existingThreadId = messageRepository.findExistingThread(
+                    message.fromUserId, 
+                    message.toCompanyId, 
+                    message.jobId
+                )
+                
+                if (existingThreadId != null) {
+                    // Use existing thread
+                    message.copy(threadId = existingThreadId)
+                } else {
+                    // Create new thread
+                    val newThreadId = generateThreadId(message.fromUserId, message.toCompanyId, message.jobId)
+                    message.copy(threadId = newThreadId)
+                }
+            } else {
+                // Thread ID explicitly provided
+                message
+            }
+            
+            messageRepository.saveMessage(messageWithThread)
+            call.respond(HttpStatusCode.Created, messageWithThread)
         }
 
         get("/messages/company/{companyId}") {

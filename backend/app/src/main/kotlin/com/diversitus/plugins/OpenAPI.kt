@@ -592,7 +592,7 @@ private val openApiSpec = """
     "/messages": {
       "post": {
         "summary": "Send message",
-        "description": "Send a message from a user to a company with optional privacy controls",
+        "description": "Send a message from a user to a company with automatic thread management. If no threadId is provided, the system will find an existing thread between the participants or create a new one.",
         "tags": ["Messages"],
         "requestBody": {
           "required": true,
@@ -618,7 +618,7 @@ private val openApiSpec = """
                       }
                     }
                   },
-                  "threadId": {"type": "string", "description": "Optional: Thread ID for grouping related messages"},
+                  "threadId": {"type": "string", "description": "Optional: Thread ID for grouping related messages. If not provided, system will auto-generate or find existing thread."},
                   "createdAt": {"type": "string", "format": "date-time", "description": "Optional: ISO 8601 timestamp (auto-generated if not provided)"}
                 },
                 "required": ["fromUserId", "toCompanyId", "content"]

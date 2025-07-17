@@ -101,6 +101,30 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
         return response.item?.toMessage()
     }
 
+    suspend fun findExistingThread(fromUserId: String, toCompanyId: String, jobId: String?): String? {
+        // First check messages from user to company
+        val userMessages = getMessagesForUser(fromUserId)
+        val relevantMessages = userMessages.filter { message ->
+            message.toCompanyId == toCompanyId &&
+            message.jobId == jobId &&
+            message.threadId != null
+        }
+        
+        if (relevantMessages.isNotEmpty()) {
+            return relevantMessages.first().threadId
+        }
+        
+        // Then check messages from company to user (replies)
+        val companyMessages = getMessagesForCompany(toCompanyId)
+        val relevantCompanyMessages = companyMessages.filter { message ->
+            message.fromUserId == fromUserId &&
+            message.jobId == jobId &&
+            message.threadId != null
+        }
+        
+        return relevantCompanyMessages.firstOrNull()?.threadId
+    }
+
     private fun Map<String, AttributeValue>.toMessage(): Message {
         val senderProfile = this["senderProfile"]?.asM()?.let { profileMap ->
             NeurodiversityProfile(
