@@ -201,16 +201,21 @@ fun Application.configureRouting(
 
         patch("/messages/{id}/status") {
             val messageId = call.parameters["id"] ?: return@patch call.respond(HttpStatusCode.BadRequest, "Message ID required")
-            val statusUpdate = call.receive<MessageStatusUpdate>()
             
-            // Verify message exists before updating
-            val existingMessage = messageRepository.getMessageById(messageId)
-            if (existingMessage == null) {
-                return@patch call.respond(HttpStatusCode.NotFound, "Message not found")
+            try {
+                val statusUpdate = call.receive<MessageStatusUpdate>()
+                
+                // Verify message exists before updating
+                val existingMessage = messageRepository.getMessageById(messageId)
+                if (existingMessage == null) {
+                    return@patch call.respond(HttpStatusCode.NotFound, "Message not found")
+                }
+                
+                messageRepository.updateMessageStatus(messageId, statusUpdate.status)
+                call.respond(HttpStatusCode.OK, mapOf("status" to "updated"))
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to update message status: ${e.message}"))
             }
-            
-            messageRepository.updateMessageStatus(messageId, statusUpdate.status)
-            call.respond(HttpStatusCode.OK, mapOf("status" to "updated"))
         }
     }
 }
