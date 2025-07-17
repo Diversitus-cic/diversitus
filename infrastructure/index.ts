@@ -78,16 +78,16 @@ const usersTable = new aws.dynamodb.Table("diversitus-users-table", {
 const messagesTable = new aws.dynamodb.Table("diversitus-messages-table", {
     attributes: [
         { name: "id", type: "S" },
-        { name: "toCompanyId", type: "S" }, // Keep old field
-        { name: "fromUserId", type: "S" }, // Keep old field
-        { name: "toId", type: "S" }, // New field
-        { name: "fromId", type: "S" }, // New field
+        { name: "toCompanyId", type: "S" },
+        { name: "fromUserId", type: "S" },
+        { name: "toId", type: "S" },
+        { name: "fromId", type: "S" },
         { name: "threadId", type: "S" },
     ],
     hashKey: "id",
     billingMode: "PAY_PER_REQUEST",
     globalSecondaryIndexes: [
-        // Keep old indexes for backward compatibility
+        // OLD indexes (already exist - don't recreate)
         {
             name: "CompanyIndex",
             hashKey: "toCompanyId",
@@ -95,10 +95,15 @@ const messagesTable = new aws.dynamodb.Table("diversitus-messages-table", {
         },
         {
             name: "UserIndex",
-            hashKey: "fromUserId",
+            hashKey: "fromUserId", 
             projectionType: "ALL",
         },
-        // Add new indexes
+        {
+            name: "ThreadIndex",
+            hashKey: "threadId",
+            projectionType: "ALL",
+        },
+        // NEW indexes (add these)
         {
             name: "ToIdIndex",
             hashKey: "toId",
@@ -107,11 +112,6 @@ const messagesTable = new aws.dynamodb.Table("diversitus-messages-table", {
         {
             name: "FromIdIndex",
             hashKey: "fromId",
-            projectionType: "ALL",
-        },
-        {
-            name: "ThreadIndex",
-            hashKey: "threadId",
             projectionType: "ALL",
         }
     ],
