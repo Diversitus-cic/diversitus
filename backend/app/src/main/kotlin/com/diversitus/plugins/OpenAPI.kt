@@ -602,8 +602,8 @@ private val openApiSpec = """
                 "type": "object",
                 "properties": {
                   "id": {"type": "string", "description": "Optional: Message ID (auto-generated if not provided)"},
-                  "fromUserId": {"type": "string", "description": "ID of the user sending the message"},
-                  "toCompanyId": {"type": "string", "description": "ID of the company receiving the message"},
+                  "fromId": {"type": "string", "description": "ID of the sender (user or company)"},
+                  "toId": {"type": "string", "description": "ID of the recipient (user or company)"},
                   "jobId": {"type": "string", "description": "Optional: Job ID if message is about a specific job"},
                   "content": {"type": "string", "description": "Message content"},
                   "isAnonymous": {"type": "boolean", "description": "Whether to send anonymously (default: false)", "default": false},
@@ -621,7 +621,7 @@ private val openApiSpec = """
                   "threadId": {"type": "string", "description": "Optional: Thread ID for grouping related messages. If not provided, system will auto-generate or find existing thread."},
                   "createdAt": {"type": "string", "format": "date-time", "description": "Optional: ISO 8601 timestamp (auto-generated if not provided)"}
                 },
-                "required": ["fromUserId", "toCompanyId", "content"]
+                "required": ["fromId", "toId", "content"]
               }
             }
           }
@@ -689,8 +689,8 @@ private val openApiSpec = """
                     "type": "object",
                     "properties": {
                       "id": {"type": "string"},
-                      "fromUserId": {"type": "string"},
-                      "toCompanyId": {"type": "string"},
+                      "fromId": {"type": "string"},
+                      "toId": {"type": "string"},
                       "jobId": {"type": "string"},
                       "content": {"type": "string"},
                       "isAnonymous": {"type": "boolean"},
@@ -747,8 +747,8 @@ private val openApiSpec = """
                     "type": "object",
                     "properties": {
                       "id": {"type": "string"},
-                      "fromUserId": {"type": "string"},
-                      "toCompanyId": {"type": "string"},
+                      "fromId": {"type": "string"},
+                      "toId": {"type": "string"},
                       "jobId": {"type": "string"},
                       "content": {"type": "string"},
                       "isAnonymous": {"type": "boolean"},
@@ -805,8 +805,8 @@ private val openApiSpec = """
                     "type": "object",
                     "properties": {
                       "id": {"type": "string"},
-                      "fromUserId": {"type": "string"},
-                      "toCompanyId": {"type": "string"},
+                      "fromId": {"type": "string"},
+                      "toId": {"type": "string"},
                       "jobId": {"type": "string"},
                       "content": {"type": "string"},
                       "isAnonymous": {"type": "boolean"},

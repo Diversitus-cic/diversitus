@@ -16,8 +16,8 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
     suspend fun saveMessage(message: Message) {
         val item = mutableMapOf(
             "id" to AttributeValue.S(message.id),
-            "fromUserId" to AttributeValue.S(message.fromUserId),
-            "toCompanyId" to AttributeValue.S(message.toCompanyId),
+            "fromId" to AttributeValue.S(message.fromId),
+            "toId" to AttributeValue.S(message.toId),
             "content" to AttributeValue.S(message.content),
             "isAnonymous" to AttributeValue.Bool(message.isAnonymous),
             "isFromCompany" to AttributeValue.Bool(message.isFromCompany),
@@ -45,8 +45,8 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
     suspend fun getMessagesForCompany(companyId: String): List<Message> {
         val request = QueryRequest {
             tableName = this@MessageRepository.tableName
-            indexName = "CompanyIndex"
-            keyConditionExpression = "toCompanyId = :companyId"
+            indexName = "ToIdIndex"
+            keyConditionExpression = "toId = :companyId"
             expressionAttributeValues = mapOf(
                 ":companyId" to AttributeValue.S(companyId)
             )
@@ -56,16 +56,32 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
     }
 
     suspend fun getMessagesForUser(userId: String): List<Message> {
-        val request = QueryRequest {
+        // Get messages sent by user
+        val sentRequest = QueryRequest {
             tableName = this@MessageRepository.tableName
-            indexName = "UserIndex"
-            keyConditionExpression = "fromUserId = :userId"
+            indexName = "FromIdIndex"
+            keyConditionExpression = "fromId = :userId"
             expressionAttributeValues = mapOf(
                 ":userId" to AttributeValue.S(userId)
             )
         }
-        val response = dbClient.query(request)
-        return response.items?.map { it.toMessage() } ?: emptyList()
+        val sentResponse = dbClient.query(sentRequest)
+        val sentMessages = sentResponse.items?.map { it.toMessage() } ?: emptyList()
+
+        // Get messages sent to user
+        val receivedRequest = QueryRequest {
+            tableName = this@MessageRepository.tableName
+            indexName = "ToIdIndex"
+            keyConditionExpression = "toId = :userId"
+            expressionAttributeValues = mapOf(
+                ":userId" to AttributeValue.S(userId)
+            )
+        }
+        val receivedResponse = dbClient.query(receivedRequest)
+        val receivedMessages = receivedResponse.items?.map { it.toMessage() } ?: emptyList()
+
+        // Combine and sort by creation time
+        return (sentMessages + receivedMessages).sortedBy { it.createdAt }
     }
 
     suspend fun getMessagesByThread(threadId: String): List<Message> {
@@ -101,28 +117,48 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
         return response.item?.toMessage()
     }
 
-    suspend fun findExistingThread(fromUserId: String, toCompanyId: String, jobId: String?): String? {
-        // First check messages from user to company
-        val userMessages = getMessagesForUser(fromUserId)
-        val relevantMessages = userMessages.filter { message ->
-            message.toCompanyId == toCompanyId &&
+    suspend fun findExistingThread(fromId: String, toId: String, jobId: String?): String? {
+        // First check messages from sender to recipient
+        val sentRequest = QueryRequest {
+            tableName = this@MessageRepository.tableName
+            indexName = "FromIdIndex"
+            keyConditionExpression = "fromId = :fromId"
+            expressionAttributeValues = mapOf(
+                ":fromId" to AttributeValue.S(fromId)
+            )
+        }
+        val sentResponse = dbClient.query(sentRequest)
+        val sentMessages = sentResponse.items?.map { it.toMessage() } ?: emptyList()
+        
+        val relevantSentMessages = sentMessages.filter { message ->
+            message.toId == toId &&
             message.jobId == jobId &&
             message.threadId != null
         }
         
-        if (relevantMessages.isNotEmpty()) {
-            return relevantMessages.first().threadId
+        if (relevantSentMessages.isNotEmpty()) {
+            return relevantSentMessages.first().threadId
         }
         
-        // Then check messages from company to user (replies)
-        val companyMessages = getMessagesForCompany(toCompanyId)
-        val relevantCompanyMessages = companyMessages.filter { message ->
-            message.fromUserId == fromUserId &&
+        // Then check messages from recipient to sender (replies)
+        val receivedRequest = QueryRequest {
+            tableName = this@MessageRepository.tableName
+            indexName = "FromIdIndex"
+            keyConditionExpression = "fromId = :toId"
+            expressionAttributeValues = mapOf(
+                ":toId" to AttributeValue.S(toId)
+            )
+        }
+        val receivedResponse = dbClient.query(receivedRequest)
+        val receivedMessages = receivedResponse.items?.map { it.toMessage() } ?: emptyList()
+        
+        val relevantReceivedMessages = receivedMessages.filter { message ->
+            message.toId == fromId &&
             message.jobId == jobId &&
             message.threadId != null
         }
         
-        return relevantCompanyMessages.firstOrNull()?.threadId
+        return relevantReceivedMessages.firstOrNull()?.threadId
     }
 
     private fun Map<String, AttributeValue>.toMessage(): Message {
@@ -134,8 +170,8 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
 
         return Message(
             id = this["id"]?.asS() ?: throw IllegalStateException("Message missing id"),
-            fromUserId = this["fromUserId"]?.asS() ?: "",
-            toCompanyId = this["toCompanyId"]?.asS() ?: "",
+            fromId = this["fromId"]?.asS() ?: "",
+            toId = this["toId"]?.asS() ?: "",
             jobId = this["jobId"]?.asS(),
             content = this["content"]?.asS() ?: "",
             isAnonymous = this["isAnonymous"]?.asBool() ?: false,

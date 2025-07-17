@@ -14,9 +14,9 @@ import io.ktor.http.*
 import kotlinx.serialization.Serializable
 import java.util.UUID
 
-fun generateThreadId(fromUserId: String, toCompanyId: String, jobId: String?): String {
+fun generateThreadId(fromId: String, toId: String, jobId: String?): String {
     val jobSuffix = if (jobId != null) "_job_${jobId}" else "_general"
-    return "thread_${fromUserId}_${toCompanyId}${jobSuffix}_${UUID.randomUUID().toString().take(8)}"
+    return "thread_${fromId}_${toId}${jobSuffix}_${UUID.randomUUID().toString().take(8)}"
 }
 
 @Serializable
@@ -159,8 +159,8 @@ fun Application.configureRouting(
             val messageWithThread = if (message.threadId == null) {
                 // Look for existing thread between these participants for this job
                 val existingThreadId = messageRepository.findExistingThread(
-                    message.fromUserId, 
-                    message.toCompanyId, 
+                    message.fromId, 
+                    message.toId, 
                     message.jobId
                 )
                 
@@ -169,7 +169,7 @@ fun Application.configureRouting(
                     message.copy(threadId = existingThreadId)
                 } else {
                     // Create new thread
-                    val newThreadId = generateThreadId(message.fromUserId, message.toCompanyId, message.jobId)
+                    val newThreadId = generateThreadId(message.fromId, message.toId, message.jobId)
                     message.copy(threadId = newThreadId)
                 }
             } else {

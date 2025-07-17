@@ -78,21 +78,21 @@ const usersTable = new aws.dynamodb.Table("diversitus-users-table", {
 const messagesTable = new aws.dynamodb.Table("diversitus-messages-table", {
     attributes: [
         { name: "id", type: "S" },
-        { name: "toCompanyId", type: "S" },
-        { name: "fromUserId", type: "S" },
+        { name: "toId", type: "S" },
+        { name: "fromId", type: "S" },
         { name: "threadId", type: "S" },
     ],
     hashKey: "id",
     billingMode: "PAY_PER_REQUEST",
     globalSecondaryIndexes: [
         {
-            name: "CompanyIndex",
-            hashKey: "toCompanyId",
+            name: "ToIdIndex",
+            hashKey: "toId",
             projectionType: "ALL",
         },
         {
-            name: "UserIndex",
-            hashKey: "fromUserId",
+            name: "FromIdIndex",
+            hashKey: "fromId",
             projectionType: "ALL",
         },
         {
@@ -208,8 +208,8 @@ new aws.iam.RolePolicy("diversitus-db-access-policy", {
                 `${usersArn}/index/EmailIndex`, 
                 `${companiesArn}/index/EmailIndex`, 
                 `${jobsArn}/index/CompanyIndex`,
-                `${messagesArn}/index/CompanyIndex`,
-                `${messagesArn}/index/UserIndex`,
+                `${messagesArn}/index/ToIdIndex`,
+                `${messagesArn}/index/FromIdIndex`,
                 `${messagesArn}/index/ThreadIndex`
             ],
         }],
