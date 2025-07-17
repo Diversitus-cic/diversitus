@@ -16,8 +16,12 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
     suspend fun saveMessage(message: Message) {
         val item = mutableMapOf(
             "id" to AttributeValue.S(message.id),
+            // New field names
             "fromId" to AttributeValue.S(message.fromId),
             "toId" to AttributeValue.S(message.toId),
+            // Old field names for backward compatibility
+            "fromUserId" to AttributeValue.S(message.fromId),
+            "toCompanyId" to AttributeValue.S(message.toId),
             "content" to AttributeValue.S(message.content),
             "isAnonymous" to AttributeValue.Bool(message.isAnonymous),
             "isFromCompany" to AttributeValue.Bool(message.isFromCompany),
@@ -170,8 +174,9 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
 
         return Message(
             id = this["id"]?.asS() ?: throw IllegalStateException("Message missing id"),
-            fromId = this["fromId"]?.asS() ?: "",
-            toId = this["toId"]?.asS() ?: "",
+            // Try new field names first, fallback to old field names
+            fromId = this["fromId"]?.asS() ?: this["fromUserId"]?.asS() ?: "",
+            toId = this["toId"]?.asS() ?: this["toCompanyId"]?.asS() ?: "",
             jobId = this["jobId"]?.asS(),
             content = this["content"]?.asS() ?: "",
             isAnonymous = this["isAnonymous"]?.asBool() ?: false,
