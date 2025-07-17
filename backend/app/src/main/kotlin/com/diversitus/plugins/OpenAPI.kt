@@ -835,6 +835,63 @@ private val openApiSpec = """
           }
         }
       }
+    },
+    "/messages/{id}/status": {
+      "patch": {
+        "summary": "Update message status",
+        "description": "Updates the status of a message (e.g., mark as read)",
+        "tags": ["Messages"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Message ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["SENT", "READ", "REPLIED"],
+                    "description": "New status for the message"
+                  }
+                },
+                "required": ["status"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {"type": "string", "example": "updated"}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid message ID or status"
+          },
+          "404": {
+            "description": "Message not found"
+          }
+        }
+      }
     }
   },
   "tags": [

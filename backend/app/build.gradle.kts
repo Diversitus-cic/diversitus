@@ -30,6 +30,8 @@ dependencies {
     // Testing
     testImplementation(libs.ktor.server.tests)
     testImplementation(libs.kotlin.test.junit)
+    testImplementation("io.mockk:mockk:1.13.5")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
 
     // No OpenAPI plugin - using manual documentation
 }

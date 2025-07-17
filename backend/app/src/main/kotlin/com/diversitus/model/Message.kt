@@ -26,3 +26,8 @@ enum class MessageStatus {
     READ,
     REPLIED
 }
+
+@Serializable
+data class MessageStatusUpdate(
+    val status: MessageStatus
+)

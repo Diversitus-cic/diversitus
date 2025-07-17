@@ -2,9 +2,11 @@ package com.diversitus.data
 
 import aws.sdk.kotlin.services.dynamodb.DynamoDbClient
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
+import aws.sdk.kotlin.services.dynamodb.model.GetItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.PutItemRequest
 import aws.sdk.kotlin.services.dynamodb.model.QueryRequest
 import aws.sdk.kotlin.services.dynamodb.model.ScanRequest
+import aws.sdk.kotlin.services.dynamodb.model.UpdateItemRequest
 import com.diversitus.model.Message
 import com.diversitus.model.MessageStatus
 import com.diversitus.model.NeurodiversityProfile
@@ -77,6 +79,26 @@ class MessageRepository(private val dbClient: DynamoDbClient, private val tableN
         }
         val response = dbClient.query(request)
         return response.items?.map { it.toMessage() } ?: emptyList()
+    }
+
+    suspend fun updateMessageStatus(messageId: String, status: MessageStatus) {
+        val request = UpdateItemRequest {
+            tableName = this@MessageRepository.tableName
+            key = mapOf("id" to AttributeValue.S(messageId))
+            updateExpression = "SET #status = :status"
+            expressionAttributeNames = mapOf("#status" to "status")
+            expressionAttributeValues = mapOf(":status" to AttributeValue.S(status.name))
+        }
+        dbClient.updateItem(request)
+    }
+
+    suspend fun getMessageById(messageId: String): Message? {
+        val request = GetItemRequest {
+            tableName = this@MessageRepository.tableName
+            key = mapOf("id" to AttributeValue.S(messageId))
+        }
+        val response = dbClient.getItem(request)
+        return response.item?.toMessage()
     }
 
     private fun Map<String, AttributeValue>.toMessage(): Message {
