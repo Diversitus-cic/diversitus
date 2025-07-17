@@ -198,7 +198,7 @@ new aws.iam.RolePolicy("diversitus-db-access-policy", {
     policy: pulumi.all([jobsTable.arn, companiesTable.arn, usersTable.arn, messagesTable.arn]).apply(([jobsArn, companiesArn, usersArn, messagesArn]) => JSON.stringify({
         Version: "2012-10-17",
         Statement: [{
-            Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:PutItem"],
+            Action: ["dynamodb:Scan", "dynamodb:Query", "dynamodb:GetItem", "dynamodb:BatchGetItem", "dynamodb:PutItem", "dynamodb:UpdateItem"],
             Effect: "Allow",
             Resource: [
                 jobsArn, 
