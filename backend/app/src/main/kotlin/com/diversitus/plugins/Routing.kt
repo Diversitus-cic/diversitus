@@ -125,6 +125,13 @@ fun Application.configureRouting(
             call.respond(matches)
         }
 
+        // TODO: Enhanced matching with analysis - temporarily disabled due to compilation issues
+        // post("/match/analysis") {
+        //     val profile = call.receive<NeurodiversityProfile>()
+        //     val response = matchingService.findMatchingJobsWithAnalysis(profile)
+        //     call.respond(response)
+        // }
+
         post("/auth/company/login") {
             val loginRequest = call.receive<CompanyLoginRequest>()
             val company = companyRepository.getCompanyByEmail(loginRequest.email)
