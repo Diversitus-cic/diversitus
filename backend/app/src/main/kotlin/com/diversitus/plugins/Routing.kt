@@ -128,18 +128,21 @@ fun Application.configureRouting(
         post("/match/debug") {
             try {
                 val profile = call.receive<NeurodiversityProfile>()
-                val response = mapOf(
-                    "status" to "received_profile",
-                    "userProfile" to profile.traits,
-                    "message" to "Debug endpoint is working"
-                )
-                call.respond(response)
+                call.respondText("""
+                    {
+                        "status": "received_profile",
+                        "message": "Debug endpoint is working",
+                        "userTraitCount": ${profile.traits.size},
+                        "firstTrait": "${profile.traits.keys.firstOrNull() ?: "none"}"
+                    }
+                """.trimIndent(), ContentType.Application.Json)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf(
-                    "error" to e.message,
-                    "stackTrace" to e.stackTraceToString(),
-                    "message" to "Error in debug endpoint"
-                ))
+                call.respondText("""
+                    {
+                        "error": "${e.message?.replace("\"", "\\\"") ?: "Unknown error"}",
+                        "message": "Error in debug endpoint"
+                    }
+                """.trimIndent(), ContentType.Application.Json)
             }
         }
 
@@ -147,13 +150,14 @@ fun Application.configureRouting(
             try {
                 val profile = call.receive<NeurodiversityProfile>()
                 val response = matchingService.findMatchingJobsWithDebug(profile)
-                call.respond(response)
+                call.respondText(response, ContentType.Application.Json)
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, mapOf(
-                    "error" to e.message,
-                    "stackTrace" to e.stackTraceToString(),
-                    "message" to "Error in matching service"
-                ))
+                call.respondText("""
+                    {
+                        "error": "${e.message?.replace("\"", "\\\"") ?: "Unknown error"}",
+                        "message": "Error in matching service"
+                    }
+                """.trimIndent(), ContentType.Application.Json)
             }
         }
 

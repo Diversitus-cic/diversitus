@@ -39,17 +39,13 @@ class MatchingService(
     }
 
     /**
-     * Debug version - finds jobs with comprehensive debug information
+     * Debug version - returns simple string with debug information
      */
-    suspend fun findMatchingJobsWithDebug(profile: NeurodiversityProfile): Map<String, Any> {
+    suspend fun findMatchingJobsWithDebug(profile: NeurodiversityProfile): String {
         return try {
             val allJobs = jobRepository.getAllJobs()
             val requiredCompanyIds = allJobs.map { it.companyId }.toSet()
             val companiesById = companyRepository.getCompaniesByIds(requiredCompanyIds).associateBy { it.id }
-            
-            val debugInfo = mutableListOf<String>()
-            debugInfo.add("Found ${allJobs.size} jobs in database")
-            debugInfo.add("Found ${companiesById.size} companies")
             
             val allMatches = allJobs.mapNotNull { job ->
                 val company = companiesById[job.companyId] ?: return@mapNotNull null
@@ -66,26 +62,26 @@ class MatchingService(
             
             val filteredMatches = allMatches.filter { it.score > 0.15 }.sortedByDescending { it.score }
             
-            mapOf(
-                "matches" to filteredMatches,
-                "debug" to mapOf(
-                    "summary" to debugInfo,
-                    "userProfile" to profile.traits,
-                    "totalJobsAnalyzed" to allJobs.size,
-                    "totalMatches" to allMatches.size,
-                    "filteredMatches" to filteredMatches.size,
-                    "threshold" to 0.15
-                )
-            )
+            """
+            {
+                "totalJobsAnalyzed": ${allJobs.size},
+                "totalCompanies": ${companiesById.size},
+                "totalMatches": ${allMatches.size},
+                "filteredMatches": ${filteredMatches.size},
+                "threshold": 0.15,
+                "userTraitCount": ${profile.traits.size},
+                "message": "Debug analysis complete"
+            }
+            """.trimIndent()
         } catch (e: Exception) {
             println("ERROR in findMatchingJobsWithDebug: ${e.message}")
-            mapOf(
-                "matches" to emptyList<MatchResult>(),
-                "debug" to mapOf(
-                    "error" to e.message,
-                    "userProfile" to profile.traits
-                )
-            )
+            """
+            {
+                "error": "${e.message?.replace("\"", "\\\"") ?: "Unknown error"}",
+                "totalJobsAnalyzed": 0,
+                "message": "Error occurred during analysis"
+            }
+            """.trimIndent()
         }
     }
 }
