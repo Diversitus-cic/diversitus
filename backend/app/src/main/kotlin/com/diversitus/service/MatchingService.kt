@@ -15,9 +15,18 @@ class MatchingService(
 ) {
 
     /**
-     * Finds jobs that match a neurodiversity profile with debug info in response
+     * Original method - finds jobs that match a neurodiversity profile
      */
-    suspend fun findMatchingJobs(profile: NeurodiversityProfile): Map<String, Any> {
+    suspend fun findMatchingJobs(profile: NeurodiversityProfile): List<MatchResult> {
+        val debugResult = findMatchingJobsWithDebug(profile)
+        @Suppress("UNCHECKED_CAST")
+        return debugResult["matches"] as List<MatchResult>
+    }
+
+    /**
+     * Debug version - finds jobs with comprehensive debug information
+     */
+    suspend fun findMatchingJobsWithDebug(profile: NeurodiversityProfile): Map<String, Any> {
         val allJobs = jobRepository.getAllJobs()
         println("DEBUG: Found ${allJobs.size} jobs in database")
         
