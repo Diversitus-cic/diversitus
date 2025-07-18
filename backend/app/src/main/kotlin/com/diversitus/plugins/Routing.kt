@@ -41,6 +41,7 @@ fun Application.configureRouting(
     messageRepository: MessageRepository,
     matchingService: MatchingService
 ) {
+    val traitLibraryService = TraitLibraryService()
     routing {
         get("/") {
             call.respondText("Welcome to the Diversitus API!")
@@ -215,6 +216,46 @@ fun Application.configureRouting(
                 call.respond(HttpStatusCode.OK, mapOf("status" to "updated"))
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Failed to update message status: ${e.message}"))
+            }
+        }
+
+        // Trait Library endpoints
+        get("/traits") {
+            val library = traitLibraryService.getTraitLibrary()
+            call.respond(library)
+        }
+
+        get("/traits/{id}") {
+            val traitId = call.parameters["id"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Trait ID required")
+            val trait = traitLibraryService.getTraitById(traitId)
+            
+            if (trait != null) {
+                call.respond(trait)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "Trait not found")
+            }
+        }
+
+        get("/traits/category/{category}") {
+            val categoryName = call.parameters["category"] ?: return@get call.respond(HttpStatusCode.BadRequest, "Category required")
+            
+            try {
+                val category = TraitCategory.valueOf(categoryName.uppercase())
+                val traits = traitLibraryService.getTraitsByCategory(category)
+                call.respond(traits)
+            } catch (e: IllegalArgumentException) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid category. Valid categories: ${TraitCategory.values().joinToString()}")
+            }
+        }
+
+        post("/traits/validate") {
+            val traitsMap = call.receive<Map<String, Int>>()
+            val errors = traitLibraryService.validateTraitMap(traitsMap)
+            
+            if (errors.isEmpty()) {
+                call.respond(mapOf("valid" to true))
+            } else {
+                call.respond(HttpStatusCode.BadRequest, mapOf("valid" to false, "errors" to errors))
             }
         }
     }

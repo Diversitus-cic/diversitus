@@ -892,6 +892,174 @@ private val openApiSpec = """
           }
         }
       }
+    },
+    "/traits": {
+      "get": {
+        "summary": "Get trait library",
+        "description": "Retrieves the complete trait library with all available neurodiversity traits",
+        "tags": ["Traits"],
+        "responses": {
+          "200": {
+            "description": "Complete trait library",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "traits": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {"type": "string"},
+                          "name": {"type": "string"},
+                          "description": {"type": "string"},
+                          "category": {"type": "string", "enum": ["COGNITIVE", "SOCIAL", "ENVIRONMENTAL", "WORK_STYLE", "EMOTIONAL"]},
+                          "isActive": {"type": "boolean"},
+                          "minValue": {"type": "integer"},
+                          "maxValue": {"type": "integer"},
+                          "examples": {"type": "array", "items": {"type": "string"}}
+                        }
+                      }
+                    },
+                    "version": {"type": "string"},
+                    "lastUpdated": {"type": "string", "format": "date-time"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/traits/{id}": {
+      "get": {
+        "summary": "Get trait by ID",
+        "description": "Retrieves a specific trait by its ID",
+        "tags": ["Traits"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string"},
+            "description": "Trait ID (e.g., 'attention_to_detail')"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trait found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {"type": "string"},
+                    "name": {"type": "string"},
+                    "description": {"type": "string"},
+                    "category": {"type": "string"},
+                    "isActive": {"type": "boolean"},
+                    "minValue": {"type": "integer"},
+                    "maxValue": {"type": "integer"},
+                    "examples": {"type": "array", "items": {"type": "string"}}
+                  }
+                }
+              }
+            }
+          },
+          "404": {"description": "Trait not found"}
+        }
+      }
+    },
+    "/traits/category/{category}": {
+      "get": {
+        "summary": "Get traits by category",
+        "description": "Retrieves all traits in a specific category",
+        "tags": ["Traits"],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "path",
+            "required": true,
+            "schema": {"type": "string", "enum": ["COGNITIVE", "SOCIAL", "ENVIRONMENTAL", "WORK_STYLE", "EMOTIONAL"]},
+            "description": "Trait category"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Traits in category",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {"type": "string"},
+                      "name": {"type": "string"},
+                      "description": {"type": "string"},
+                      "category": {"type": "string"},
+                      "examples": {"type": "array", "items": {"type": "string"}}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {"description": "Invalid category"}
+        }
+      }
+    },
+    "/traits/validate": {
+      "post": {
+        "summary": "Validate trait values",
+        "description": "Validates a map of trait IDs to values",
+        "tags": ["Traits"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {"type": "integer"},
+                "example": {"attention_to_detail": 8, "deep_focus": 9}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid": {"type": "boolean", "example": true}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation errors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid": {"type": "boolean", "example": false},
+                    "errors": {
+                      "type": "object",
+                      "additionalProperties": {"type": "string"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -918,6 +1086,10 @@ private val openApiSpec = """
     {
       "name": "Messages",
       "description": "Messaging system between users and companies"
+    },
+    {
+      "name": "Traits",
+      "description": "Neurodiversity trait library and validation"
     }
   ]
 }

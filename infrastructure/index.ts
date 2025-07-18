@@ -2,8 +2,8 @@ import * as pulumi from "@pulumi/pulumi";
 import * as aws from "@pulumi/aws";
 import * as awsx from "@pulumi/awsx";
 import * as path from "path";
-import { marshall } from "@aws-sdk/util-dynamodb";
-import { v4 as uuidv4 } from "uuid";
+// import { marshall } from "@aws-sdk/util-dynamodb";
+// import { v4 as uuidv4 } from "uuid";
 
 const config = new pulumi.Config();
 // Read the domain configuration
@@ -119,87 +119,90 @@ const messagesTable = new aws.dynamodb.Table("diversitus-messages-table", {
 });
 
 // Seed the companies table with initial data.
-const companies = [
-    { id: uuidv4(), name: "Creative Co.", email: "contact@creative-co.com", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
-    { id: uuidv4(), name: "Logic Inc.", email: "hr@logic-inc.com", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
-    { id: uuidv4(), name: "DataDriven Corp", email: "jobs@datadriven-corp.com", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
-];
+// TODO: Temporarily disabled to prevent overwriting existing data on deploy
+// const companies = [
+//     { id: uuidv4(), name: "Creative Co.", email: "contact@creative-co.com", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
+//     { id: uuidv4(), name: "Logic Inc.", email: "hr@logic-inc.com", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
+//     { id: uuidv4(), name: "DataDriven Corp", email: "jobs@datadriven-corp.com", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
+// ];
 
-companies.forEach((company, i) => {
-    new aws.dynamodb.TableItem(`company-item-${i}`, {
-        tableName: companiesTable.name,
-        hashKey: companiesTable.hashKey,
-        item: JSON.stringify(marshall(company)),
-    });
-});
+// companies.forEach((company, i) => {
+//     new aws.dynamodb.TableItem(`company-item-${i}`, {
+//         tableName: companiesTable.name,
+//         hashKey: companiesTable.hashKey,
+//         item: JSON.stringify(marshall(company)),
+//     });
+// });
 
 // Seed the jobs table with updated data linking to companies.
-const initialJobsData = [
-    { id: uuidv4(), companyId: companies[0].id, title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9, "working_from_home": 9 }, createdAt: new Date().toISOString() },
-    { id: uuidv4(), companyId: companies[1].id, title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8, "quiet_office": 8 }, createdAt: new Date().toISOString() },
-    { id: uuidv4(), companyId: companies[0].id, title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10, "working_from_home": 10 }, createdAt: new Date().toISOString() },
-    { id: uuidv4(), companyId: companies[2].id, title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9, "quiet_office": 7 }, createdAt: new Date().toISOString() },
-    { id: uuidv4(), companyId: companies[1].id, title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8, "working_from_home": 7 }, createdAt: new Date().toISOString() },
-];
+// TODO: Temporarily disabled to prevent overwriting existing data on deploy
+// const initialJobsData = [
+//     { id: uuidv4(), companyId: companies[0].id, title: "Frontend Developer", description: "Build beautiful and accessible user interfaces.", traits: { "attention_to_detail": 8, "visual_thinking": 9, "working_from_home": 9 }, createdAt: new Date().toISOString() },
+//     { id: uuidv4(), companyId: companies[1].id, title: "Backend Engineer", description: "Design and implement scalable server-side logic.", traits: { "problem_solving": 9, "systematic_thinking": 8, "quiet_office": 8 }, createdAt: new Date().toISOString() },
+//     { id: uuidv4(), companyId: companies[0].id, title: "UX Designer", description: "Create intuitive and user-friendly application flows.", traits: { "empathy": 9, "visual_thinking": 10, "working_from_home": 10 }, createdAt: new Date().toISOString() },
+//     { id: uuidv4(), companyId: companies[2].id, title: "Data Analyst", description: "Find insights and patterns in large datasets.", traits: { "pattern_recognition": 10, "attention_to_detail": 9, "quiet_office": 7 }, createdAt: new Date().toISOString() },
+//     { id: uuidv4(), companyId: companies[1].id, title: "DevOps Engineer", description: "Automate and streamline our infrastructure and deployment pipelines.", traits: { "systematic_thinking": 9, "problem_solving": 8, "working_from_home": 7 }, createdAt: new Date().toISOString() },
+// ];
 
-initialJobsData.forEach((job, i) => {
-    new aws.dynamodb.TableItem(`job-item-${i}`, {
-        tableName: jobsTable.name,
-        hashKey: jobsTable.hashKey,
-        item: JSON.stringify(marshall(job)),
-    });
-});
+// initialJobsData.forEach((job, i) => {
+//     new aws.dynamodb.TableItem(`job-item-${i}`, {
+//         tableName: jobsTable.name,
+//         hashKey: jobsTable.hashKey,
+//         item: JSON.stringify(marshall(job)),
+//     });
+// });
 
 // Seed the users table with initial test data.
-const initialUsersData = [
-    { 
-        id: uuidv4(), 
-        name: "Alice Johnson", 
-        email: "alice@example.com", 
-        profile: { 
-            traits: { 
-                "attention_to_detail": 8, 
-                "visual_thinking": 9, 
-                "working_from_home": 10,
-                "collaboration": 7
-            } 
-        } 
-    },
-    { 
-        id: uuidv4(), 
-        name: "Bob Smith", 
-        email: "bob@example.com", 
-        profile: { 
-            traits: { 
-                "problem_solving": 9, 
-                "systematic_thinking": 8, 
-                "quiet_office": 9,
-                "deep_focus": 8
-            } 
-        } 
-    },
-    { 
-        id: uuidv4(), 
-        name: "Carol Williams", 
-        email: "carol@example.com", 
-        profile: { 
-            traits: { 
-                "pattern_recognition": 10, 
-                "attention_to_detail": 9, 
-                "quiet_office": 8,
-                "working_from_home": 6
-            } 
-        } 
-    },
-];
+// TODO: Temporarily disabled to prevent overwriting existing data on deploy
+// const initialUsersData = [
+//     { 
+//         id: uuidv4(), 
+//         name: "Alice Johnson", 
+//         email: "alice@example.com", 
+//         profile: { 
+//             traits: { 
+//                 "attention_to_detail": 8, 
+//                 "visual_thinking": 9, 
+//                 "working_from_home": 10,
+//                 "collaboration": 7
+//             } 
+//         } 
+//     },
+//     { 
+//         id: uuidv4(), 
+//         name: "Bob Smith", 
+//         email: "bob@example.com", 
+//         profile: { 
+//             traits: { 
+//                 "problem_solving": 9, 
+//                 "systematic_thinking": 8, 
+//                 "quiet_office": 9,
+//                 "deep_focus": 8
+//             } 
+//         } 
+//     },
+//     { 
+//         id: uuidv4(), 
+//         name: "Carol Williams", 
+//         email: "carol@example.com", 
+//         profile: { 
+//             traits: { 
+//                 "pattern_recognition": 10, 
+//                 "attention_to_detail": 9, 
+//                 "quiet_office": 8,
+//                 "working_from_home": 6
+//             } 
+//         } 
+//     },
+// ];
 
-initialUsersData.forEach((user, i) => {
-    new aws.dynamodb.TableItem(`user-item-${i}`, {
-        tableName: usersTable.name,
-        hashKey: usersTable.hashKey,
-        item: JSON.stringify(marshall(user)),
-    });
-});
+// initialUsersData.forEach((user, i) => {
+//     new aws.dynamodb.TableItem(`user-item-${i}`, {
+//         tableName: usersTable.name,
+//         hashKey: usersTable.hashKey,
+//         item: JSON.stringify(marshall(user)),
+//     });
+// });
 
 // 4. Create an IAM role for the Fargate Task.
 const taskRole = new aws.iam.Role("diversitus-task-role", {
