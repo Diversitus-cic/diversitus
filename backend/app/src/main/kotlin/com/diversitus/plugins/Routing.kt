@@ -126,9 +126,35 @@ fun Application.configureRouting(
         }
 
         post("/match/debug") {
-            val profile = call.receive<NeurodiversityProfile>()
-            val response = matchingService.findMatchingJobsWithDebug(profile)
-            call.respond(response)
+            try {
+                val profile = call.receive<NeurodiversityProfile>()
+                val response = mapOf(
+                    "status" to "received_profile",
+                    "userProfile" to profile.traits,
+                    "message" to "Debug endpoint is working"
+                )
+                call.respond(response)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf(
+                    "error" to e.message,
+                    "stackTrace" to e.stackTraceToString(),
+                    "message" to "Error in debug endpoint"
+                ))
+            }
+        }
+
+        post("/match/debug2") {
+            try {
+                val profile = call.receive<NeurodiversityProfile>()
+                val response = matchingService.findMatchingJobsWithDebug(profile)
+                call.respond(response)
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf(
+                    "error" to e.message,
+                    "stackTrace" to e.stackTraceToString(),
+                    "message" to "Error in matching service"
+                ))
+            }
         }
 
         post("/auth/company/login") {
