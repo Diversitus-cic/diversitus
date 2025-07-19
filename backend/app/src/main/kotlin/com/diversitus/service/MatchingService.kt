@@ -35,7 +35,7 @@ class MatchingService(
             MatchResult(job, company, score)
         }
         
-        return allMatches.filter { it.score > 0.05 }.sortedByDescending { it.score }
+        return allMatches.filter { it.score > 0.15 }.sortedByDescending { it.score }
     }
 
     /**
