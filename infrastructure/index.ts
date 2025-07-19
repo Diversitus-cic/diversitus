@@ -118,21 +118,20 @@ const messagesTable = new aws.dynamodb.Table("diversitus-messages-table", {
     tags: { Project: "Diversitus" },
 });
 
-// Seed the companies table with initial data.
-// TODO: Temporarily disabled to prevent overwriting existing data on deploy
-// const companies = [
-//     { id: uuidv4(), name: "Creative Co.", email: "contact@creative-co.com", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
-//     { id: uuidv4(), name: "Logic Inc.", email: "hr@logic-inc.com", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
-//     { id: uuidv4(), name: "DataDriven Corp", email: "jobs@datadriven-corp.com", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
-// ];
+// Seed the companies table with initial data using fixed UUIDs.
+const companies = [
+    { id: "550e8400-e29b-41d4-a716-446655440001", name: "Creative Co.", email: "contact@creative-co.com", traits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 } },
+    { id: "550e8400-e29b-41d4-a716-446655440002", name: "Logic Inc.", email: "hr@logic-inc.com", traits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 } },
+    { id: "550e8400-e29b-41d4-a716-446655440003", name: "DataDriven Corp", email: "jobs@datadriven-corp.com", traits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 } },
+];
 
-// companies.forEach((company, i) => {
-//     new aws.dynamodb.TableItem(`company-item-${i}`, {
-//         tableName: companiesTable.name,
-//         hashKey: companiesTable.hashKey,
-//         item: JSON.stringify(marshall(company)),
-//     });
-// });
+companies.forEach((company, i) => {
+    new aws.dynamodb.TableItem(`company-item-${i}`, {
+        tableName: companiesTable.name,
+        hashKey: companiesTable.hashKey,
+        item: JSON.stringify(marshall(company)),
+    });
+});
 
 // Seed the jobs table with updated data linking to companies.
 // TODO: Temporarily disabled to prevent overwriting existing data on deploy

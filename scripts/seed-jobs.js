@@ -5,20 +5,20 @@
 
 const { v4: uuidv4 } = require('uuid');
 
-// Company IDs (these should match your existing companies)
+// Company IDs (these match the fixed UUIDs in Pulumi infrastructure seeding)
 const COMPANIES = [
     { 
-        id: "creative-co-001", 
+        id: "550e8400-e29b-41d4-a716-446655440001", 
         name: "Creative Co.",
         baseTraits: { "work_life_balance": 9, "collaboration": 8, "working_from_home": 10 }
     },
     { 
-        id: "logic-inc-002", 
+        id: "550e8400-e29b-41d4-a716-446655440002", 
         name: "Logic Inc.",
         baseTraits: { "deep_focus": 9, "autonomy": 7, "quiet_office": 9, "working_from_home": 8 }
     },
     { 
-        id: "datadriven-corp-003", 
+        id: "550e8400-e29b-41d4-a716-446655440003", 
         name: "DataDriven Corp",
         baseTraits: { "pattern_recognition": 9, "deep_focus": 8, "quiet_office": 7 }
     }
@@ -230,6 +230,78 @@ function generateJobs() {
         const levelJobs = generateJobsWithLevels(template, randomCompany);
         jobs.push(...levelJobs);
     });
+    
+    // Add test jobs for Matthew Parker's profile for algorithm validation
+    const matthewTestJobs = [
+        // Perfect Match Job (Score = 1.0)
+        {
+            id: uuidv4(),
+            title: "Perfect Match Test Job - Matthew Parker",
+            description: "Exactly matches Matthew's trait profile for testing",
+            companyId: "550e8400-e29b-41d4-a716-446655440001", // Creative Co.
+            traits: {
+                "work_life_balance": 5,
+                "autonomy": 7,
+                "empathy": 9,
+                "visual_thinking": 5,
+                "systematic_thinking": 5,
+                "collaboration": 6,
+                "pattern_recognition": 4,
+                "problem_solving": 7,
+                "quiet_office": 1,
+                "working_from_home": 9,
+                "attention_to_detail": 8,
+                "deep_focus": 3
+            },
+            createdAt: new Date().toISOString()
+        },
+        // Close Match +1 Job (Score ≈ 0.22)
+        {
+            id: uuidv4(),
+            title: "Close Match +1 Test Job - Matthew Parker",
+            description: "One point higher on each trait for testing",
+            companyId: "550e8400-e29b-41d4-a716-446655440002", // Logic Inc.
+            traits: {
+                "work_life_balance": 6,      // 5+1
+                "autonomy": 8,               // 7+1
+                "empathy": 10,               // 9+1
+                "visual_thinking": 6,        // 5+1
+                "systematic_thinking": 6,    // 5+1
+                "collaboration": 7,          // 6+1
+                "pattern_recognition": 5,    // 4+1
+                "problem_solving": 8,        // 7+1
+                "quiet_office": 2,           // 1+1
+                "working_from_home": 10,     // 9+1
+                "attention_to_detail": 9,    // 8+1
+                "deep_focus": 4              // 3+1
+            },
+            createdAt: new Date().toISOString()
+        },
+        // Close Match -1 Job (Score ≈ 0.22)
+        {
+            id: uuidv4(),
+            title: "Close Match -1 Test Job - Matthew Parker",
+            description: "One point lower on each trait for testing",
+            companyId: "550e8400-e29b-41d4-a716-446655440003", // DataDriven Corp
+            traits: {
+                "work_life_balance": 4,      // 5-1
+                "autonomy": 6,               // 7-1
+                "empathy": 8,                // 9-1
+                "visual_thinking": 4,        // 5-1
+                "systematic_thinking": 4,    // 5-1
+                "collaboration": 5,          // 6-1
+                "pattern_recognition": 3,    // 4-1
+                "problem_solving": 6,        // 7-1
+                "quiet_office": 0,           // 1-1 (minimum 0)
+                "working_from_home": 8,      // 9-1
+                "attention_to_detail": 7,    // 8-1
+                "deep_focus": 2              // 3-1
+            },
+            createdAt: new Date().toISOString()
+        }
+    ];
+    
+    jobs.push(...matthewTestJobs);
     
     return jobs;
 }

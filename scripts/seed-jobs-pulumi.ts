@@ -10,12 +10,11 @@ import { v4 as uuidv4 } from 'uuid';
 // Import the job data
 const { jobs, COMPANIES } = require('./seed-jobs');
 
-// Update company IDs to match your actual infrastructure
-// You'll need to replace these with the actual UUIDs from your companies table
+// Company ID mapping to match fixed UUIDs from infrastructure seeding
 const COMPANY_ID_MAPPING = {
-    "creative-co-001": "REPLACE_WITH_ACTUAL_CREATIVE_CO_UUID",
-    "logic-inc-002": "REPLACE_WITH_ACTUAL_LOGIC_INC_UUID", 
-    "datadriven-corp-003": "REPLACE_WITH_ACTUAL_DATADRIVEN_CORP_UUID"
+    "550e8400-e29b-41d4-a716-446655440001": "550e8400-e29b-41d4-a716-446655440001", // Creative Co.
+    "550e8400-e29b-41d4-a716-446655440002": "550e8400-e29b-41d4-a716-446655440002", // Logic Inc.
+    "550e8400-e29b-41d4-a716-446655440003": "550e8400-e29b-41d4-a716-446655440003"  // DataDriven Corp
 };
 
 // Function to create DynamoDB table items for jobs
