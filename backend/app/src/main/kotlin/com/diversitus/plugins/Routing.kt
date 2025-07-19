@@ -119,22 +119,10 @@ fun Application.configureRouting(
             }
         }
 
-        get("/match/test") {
-            call.respondText("""{"message": "Match endpoint routing is working", "timestamp": "${System.currentTimeMillis()}"}""", ContentType.Application.Json)
-        }
-
         post("/match") {
-            try {
-                println("POST /match endpoint hit")
-                val profile = call.receive<NeurodiversityProfile>()
-                println("Profile received with ${profile.traits.size} traits")
-                val matches = matchingService.findMatchingJobs(profile)
-                println("Found ${matches.size} matches")
-                call.respond(matches)
-            } catch (e: Exception) {
-                println("ERROR in /match endpoint: ${e.message}")
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))
-            }
+            val profile = call.receive<NeurodiversityProfile>()
+            val matches = matchingService.findMatchingJobs(profile)
+            call.respond(matches)
         }
 
         post("/match/debug") {
