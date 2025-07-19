@@ -35,7 +35,7 @@ class MatchingService(
             MatchResult(job, company, score)
         }
         
-        return allMatches.filter { it.score > 0.15 }.sortedByDescending { it.score }
+        return allMatches.filter { it.score > 0.05 }.sortedByDescending { it.score }
     }
 
     /**
@@ -46,6 +46,11 @@ class MatchingService(
             val allJobs = jobRepository.getAllJobs()
             val requiredCompanyIds = allJobs.map { it.companyId }.toSet()
             val companiesById = companyRepository.getCompaniesByIds(requiredCompanyIds).associateBy { it.id }
+            
+            // Debug company loading
+            val firstFewJobCompanyIds = allJobs.take(5).map { "\"${it.title}\": \"${it.companyId}\"" }.joinToString(", ")
+            val loadedCompanyIds = companiesById.keys.joinToString(", ") { "\"$it\"" }
+            val missingCompanyIds = requiredCompanyIds - companiesById.keys
             
             val allMatches = allJobs.mapNotNull { job ->
                 val company = companiesById[job.companyId] ?: return@mapNotNull null
@@ -62,14 +67,24 @@ class MatchingService(
             
             val filteredMatches = allMatches.filter { it.score > 0.15 }.sortedByDescending { it.score }
             
+            // Show top 5 scores for analysis
+            val topScores = allMatches.sortedByDescending { it.score }.take(5)
+            val scoresText = topScores.map { "\"${it.job.title}\": ${String.format("%.4f", it.score)}" }.joinToString(", ")
+            
             """
             {
                 "totalJobsAnalyzed": ${allJobs.size},
+                "requiredCompanyIds": ${requiredCompanyIds.size},
                 "totalCompanies": ${companiesById.size},
                 "totalMatches": ${allMatches.size},
                 "filteredMatches": ${filteredMatches.size},
                 "threshold": 0.15,
                 "userTraitCount": ${profile.traits.size},
+                "topScores": {${scoresText}},
+                "maxScore": ${allMatches.maxOfOrNull { it.score } ?: 0.0},
+                "sampleJobCompanyIds": {${firstFewJobCompanyIds}},
+                "loadedCompanyIds": [${loadedCompanyIds}],
+                "missingCompanyCount": ${missingCompanyIds.size},
                 "message": "Debug analysis complete"
             }
             """.trimIndent()
